@@ -1,0 +1,249 @@
+"""
+News Search Service using TheNewsAPI.com
+Provides simple interface for fetching news headlines by region and topic.
+"""
+
+import requests
+import logging
+from typing import List, Dict, Optional
+from datetime import datetime, timedelta
+import os
+from dataclasses import dataclass
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@dataclass
+class NewsArticle:
+    """Data structure for a news article"""
+    title: str
+    description: str
+    url: str
+    source: str
+    published_at: str
+    image_url: Optional[str] = None
+    category: Optional[str] = None
+
+class NewsSearchService:
+    """Service for searching news using TheNewsAPI.com"""
+    
+    def __init__(self, api_key: Optional[str] = None):
+        """
+        Initialize the news search service
+        
+        Args:
+            api_key: TheNewsAPI key (optional - free tier works without key)
+        """
+        self.api_key = api_key or os.getenv('THENEWSAPI_KEY')
+        self.base_url = "https://api.thenewsapi.com/v1/news"
+        
+        # Regional mappings for news sources
+        self.regions = {
+            'american': {
+                'countries': ['us'],
+                'sources': ['cnn.com', 'nytimes.com', 'washingtonpost.com', 'reuters.com', 'ap.org']
+            },
+            'european': {
+                'countries': ['gb', 'de', 'fr', 'it', 'es'],
+                'sources': ['bbc.com', 'theguardian.com', 'reuters.com', 'dw.com']
+            },
+            'asian': {
+                'countries': ['jp', 'kr', 'sg', 'in', 'cn'],
+                'sources': ['reuters.com', 'nikkei.com', 'scmp.com']
+            }
+        }
+        
+        # Category mappings
+        self.categories = {
+            'general': 'general',
+            'politics': 'politics', 
+            'business': 'business',
+            'technology': 'tech',
+            'sports': 'sports',
+            'entertainment': 'entertainment',
+            'health': 'health',
+            'science': 'science'
+        }
+
+    def search_headlines(self, 
+                        region: str = 'american',
+                        category: str = 'general',
+                        limit: int = 20,
+                        hours_back: int = 24) -> List[NewsArticle]:
+        """
+        Search for top headlines by region and category
+        
+        Args:
+            region: 'american', 'european', or 'asian'
+            category: news category (general, politics, business, etc.)
+            limit: number of articles to return
+            hours_back: how many hours back to search
+            
+        Returns:
+            List of NewsArticle objects
+        """
+        try:
+            # Build API parameters
+            params = {
+                'language': 'en',
+                'limit': limit,
+                'sort': 'published_at',
+                'order': 'desc'
+            }
+            
+            # Add API key if available
+            if self.api_key:
+                params['api_token'] = self.api_key
+            
+            # Set category if not general
+            if category != 'general' and category in self.categories:
+                params['categories'] = self.categories[category]
+            
+            # Set regional parameters
+            if region in self.regions:
+                # Use country codes for better regional targeting
+                countries = ','.join(self.regions[region]['countries'])
+                params['countries'] = countries
+            
+            # Set time range
+            published_after = datetime.now() - timedelta(hours=hours_back)
+            params['published_after'] = published_after.strftime('%Y-%m-%dT%H:%M:%S')
+            
+            # Make API request
+            logger.info(f"Searching {region} {category} news with params: {params}")
+            response = requests.get(self.base_url + '/top', params=params, timeout=10)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Parse response
+            articles = []
+            for item in data.get('data', []):
+                article = NewsArticle(
+                    title=item.get('title', ''),
+                    description=item.get('description', ''),
+                    url=item.get('url', ''),
+                    source=item.get('source', ''),
+                    published_at=item.get('published_at', ''),
+                    image_url=item.get('image_url'),
+                    category=item.get('categories', [None])[0] if item.get('categories') else None
+                )
+                articles.append(article)
+            
+            logger.info(f"Found {len(articles)} articles")
+            return articles
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"API request failed: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Unexpected error in search_headlines: {e}")
+            return []
+
+    def search_by_keywords(self, 
+                          keywords: str,
+                          region: str = 'american',
+                          limit: int = 10,
+                          hours_back: int = 24) -> List[NewsArticle]:
+        """
+        Search for articles by keywords
+        
+        Args:
+            keywords: search terms
+            region: regional focus
+            limit: number of results
+            hours_back: time range
+            
+        Returns:
+            List of NewsArticle objects
+        """
+        try:
+            params = {
+                'search': keywords,
+                'language': 'en',
+                'limit': limit,
+                'sort': 'relevance_score',
+                'order': 'desc'
+            }
+            
+            if self.api_key:
+                params['api_token'] = self.api_key
+            
+            # Regional targeting
+            if region in self.regions:
+                countries = ','.join(self.regions[region]['countries'])
+                params['countries'] = countries
+            
+            # Time range
+            published_after = datetime.now() - timedelta(hours=hours_back)
+            params['published_after'] = published_after.strftime('%Y-%m-%dT%H:%M:%S')
+            
+            logger.info(f"Searching for keywords '{keywords}' in {region}")
+            response = requests.get(self.base_url + '/all', params=params, timeout=10)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            articles = []
+            for item in data.get('data', []):
+                article = NewsArticle(
+                    title=item.get('title', ''),
+                    description=item.get('description', ''),
+                    url=item.get('url', ''),
+                    source=item.get('source', ''),
+                    published_at=item.get('published_at', ''),
+                    image_url=item.get('image_url'),
+                    category=item.get('categories', [None])[0] if item.get('categories') else None
+                )
+                articles.append(article)
+            
+            logger.info(f"Found {len(articles)} articles for '{keywords}'")
+            return articles
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Keyword search failed: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Unexpected error in search_by_keywords: {e}")
+            return []
+
+    def get_top_stories(self, region: str = 'american', limit: int = 10) -> List[NewsArticle]:
+        """
+        Get top breaking news stories for a region
+        
+        Args:
+            region: target region
+            limit: number of stories
+            
+        Returns:
+            List of top NewsArticle objects
+        """
+        return self.search_headlines(
+            region=region,
+            category='general',
+            limit=limit,
+            hours_back=12  # Focus on very recent breaking news
+        )
+
+# Example usage and testing
+if __name__ == "__main__":
+    # Initialize service
+    service = NewsSearchService()
+    
+    # Test American headlines
+    print("=== TOP AMERICAN HEADLINES ===")
+    articles = service.get_top_stories('american', limit=5)
+    for i, article in enumerate(articles, 1):
+        print(f"{i}. {article.title}")
+        print(f"   Source: {article.source}")
+        print(f"   Published: {article.published_at}")
+        print()
+    
+    # Test keyword search
+    print("=== SEARCH RESULTS FOR 'AI' ===")
+    ai_articles = service.search_by_keywords('artificial intelligence', 'american', limit=3)
+    for article in ai_articles:
+        print(f"• {article.title}")
+        print(f"  {article.description[:100]}...")
+        print()

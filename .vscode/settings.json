@@ -1,0 +1,13 @@
+{
+    // Enable linting for Python files in src/
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": ["--init-hook", "import sys; sys.path.append('src')"],
+    "python.linting.lintOnSave": true,
+
+    // Set pytest as the test framework for tests/
+    "python.testing.pytestEnabled": true,
+    "python.testing.pytestArgs": ["tests"],
+    "python.testing.unittestEnabled": false,
+    "python.testing.nosetestsEnabled": false
+}

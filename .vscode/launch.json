@@ -1,0 +1,19 @@
+{
+    // Python: Launch active file with AWS profile and region
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File (AWS profile)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "AWS_PROFILE": "drnate-explains-admin",
+                "AWS_DEFAULT_REGION": "us-east-1",
+                "THENEWSAPI_KEY": "a606711b56e343edab467cbf4a0f4b42"
+            }
+        }
+    ]
+}
