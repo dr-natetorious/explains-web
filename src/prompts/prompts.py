@@ -1,4 +1,3 @@
-from os import PathLike
 from pathlib import Path
 DEFAULT_PROMPT_FOLDER = Path(__file__).parent
 
@@ -6,7 +5,7 @@ class Prompts:
     """
     A class to hold various prompts used in the application.
     """
-    def __init__(self, prompts:PathLike=DEFAULT_PROMPT_FOLDER) -> None:
+    def __init__(self, prompts:Path=DEFAULT_PROMPT_FOLDER) -> None:
         self._base_path = Path(prompts)
         if not self._base_path.exists():
             raise FileNotFoundError(f"Prompt folder '{self._base_path}' does not exist.")

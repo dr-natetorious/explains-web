@@ -3,19 +3,19 @@ News Search Service using TheNewsAPI.com
 Provides simple interface for fetching news headlines by region and topic.
 """
 
-import requests
+import httpx
 import logging
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 import os
-from dataclasses import dataclass
+import asyncio
+from pydantic import BaseModel
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@dataclass
-class NewsArticle:
+class NewsArticle(BaseModel):
     """Data structure for a news article"""
     title: str
     description: str
@@ -66,7 +66,7 @@ class NewsSearchService:
             'science': 'science'
         }
 
-    def search_headlines(self, 
+    async def search_headlines(self, 
                         region: str = 'american',
                         category: str = 'general',
                         limit: int = 20,
@@ -112,10 +112,10 @@ class NewsSearchService:
             
             # Make API request
             logger.info(f"Searching {region} {category} news with params: {params}")
-            response = requests.get(self.base_url + '/top', params=params, timeout=10)
-            response.raise_for_status()
-            
-            data = response.json()
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(self.base_url + '/top', params=params)
+                response.raise_for_status()
+                data = response.json()
             
             # Parse response
             articles = []
@@ -134,14 +134,14 @@ class NewsSearchService:
             logger.info(f"Found {len(articles)} articles")
             return articles
             
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"API request failed: {e}")
             return []
         except Exception as e:
             logger.error(f"Unexpected error in search_headlines: {e}")
             return []
 
-    def search_by_keywords(self, 
+    async def search_by_keywords(self, 
                           keywords: str,
                           region: str = 'american',
                           limit: int = 10,
@@ -170,20 +170,18 @@ class NewsSearchService:
             if self.api_key:
                 params['api_token'] = self.api_key
             
-            # Regional targeting
             if region in self.regions:
                 countries = ','.join(self.regions[region]['countries'])
                 params['countries'] = countries
             
-            # Time range
             published_after = datetime.now() - timedelta(hours=hours_back)
             params['published_after'] = published_after.strftime('%Y-%m-%dT%H:%M:%S')
             
             logger.info(f"Searching for keywords '{keywords}' in {region}")
-            response = requests.get(self.base_url + '/all', params=params, timeout=10)
-            response.raise_for_status()
-            
-            data = response.json()
+            async with httpx.AsyncClient(timeout=10) as client:
+                response = await client.get(self.base_url + '/all', params=params)
+                response.raise_for_status()
+                data = response.json()
             
             articles = []
             for item in data.get('data', []):
@@ -201,14 +199,14 @@ class NewsSearchService:
             logger.info(f"Found {len(articles)} articles for '{keywords}'")
             return articles
             
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"Keyword search failed: {e}")
             return []
         except Exception as e:
             logger.error(f"Unexpected error in search_by_keywords: {e}")
             return []
 
-    def get_top_stories(self, region: str = 'american', limit: int = 10) -> List[NewsArticle]:
+    async def get_top_stories(self, region: str = 'american', limit: int = 10) -> List[NewsArticle]:
         """
         Get top breaking news stories for a region
         
@@ -219,7 +217,7 @@ class NewsSearchService:
         Returns:
             List of top NewsArticle objects
         """
-        return self.search_headlines(
+        return await self.search_headlines(
             region=region,
             category='general',
             limit=limit,
@@ -228,22 +226,26 @@ class NewsSearchService:
 
 # Example usage and testing
 if __name__ == "__main__":
-    # Initialize service
-    service = NewsSearchService()
+    async def main():
+        # Initialize service
+        service = NewsSearchService()
+        
+        # Test American headlines
+        print("=== TOP AMERICAN HEADLINES ===")
+        articles = await service.get_top_stories('american', limit=5)
+        for i, article in enumerate(articles, 1):
+            print(f"{i}. {article.title}")
+            print(f"   Source: {article.source}")
+            print(f"   Published: {article.published_at}")
+            print()
+        
+        # Test keyword search
+        print("=== SEARCH RESULTS FOR 'AI' ===")
+        ai_articles = await service.search_by_keywords('artificial intelligence', 'american', limit=3)
+        for article in ai_articles:
+            print(f"• {article.title}")
+            print(f"  {article.description[:100]}...")
+            print()
     
-    # Test American headlines
-    print("=== TOP AMERICAN HEADLINES ===")
-    articles = service.get_top_stories('american', limit=5)
-    for i, article in enumerate(articles, 1):
-        print(f"{i}. {article.title}")
-        print(f"   Source: {article.source}")
-        print(f"   Published: {article.published_at}")
-        print()
-    
-    # Test keyword search
-    print("=== SEARCH RESULTS FOR 'AI' ===")
-    ai_articles = service.search_by_keywords('artificial intelligence', 'american', limit=3)
-    for article in ai_articles:
-        print(f"• {article.title}")
-        print(f"  {article.description[:100]}...")
-        print()
+    # Run the main function
+    asyncio.run(main())

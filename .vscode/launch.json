@@ -14,6 +14,20 @@
                 "AWS_DEFAULT_REGION": "us-east-1",
                 "THENEWSAPI_KEY": "a606711b56e343edab467cbf4a0f4b42"
             }
+        },
+        {
+            "name": "PyTest",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["tests"],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "AWS_PROFILE": "drnate-explains-admin",
+                "AWS_DEFAULT_REGION": "us-east-1",
+                "THENEWSAPI_KEY": "a606711b56e343edab467cbf4a0f4b42"
+            }
         }
     ]
 }

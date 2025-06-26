@@ -9,7 +9,7 @@ import logging
 from typing import List, Dict, Optional
 from datetime import datetime
 import os
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 from services import NewsArticle, NewsSearchService
 from prompts import Prompts
@@ -18,8 +18,7 @@ from prompts import Prompts
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@dataclass
-class NewscastSegment:
+class NewscastSegment(BaseModel):
     """Structure for a newscast segment"""
     segment_type: str  # 'headlines' or 'context'
     content: str
@@ -123,7 +122,7 @@ URL: {article.url}
 """)
         return "\n".join(formatted)
 
-    def generate_headlines_segment(self, 
+    async def generate_headlines_segment(self, 
                                  region: str = 'american',
                                  category: str = 'general') -> NewscastSegment:
         """
@@ -139,7 +138,7 @@ URL: {article.url}
         try:
             # Get latest news articles
             logger.info(f"Fetching {region} {category} news for headlines")
-            articles = self.search_service.search_headlines(
+            articles = await self.search_service.search_headlines(
                 region=region,
                 category=category,
                 limit=10,
@@ -159,7 +158,7 @@ URL: {article.url}
             
             # Add current date to prompt
             current_date = datetime.now().strftime("%B %d, %Y")
-            prompt = self.prompts['headlines'].replace('[DATE]', current_date)
+            prompt = self.prompts.get_headlines_prompt().replace('[DATE]', current_date)
             prompt = prompt.replace('{articles}', articles_text)
             
             # Generate content with Claude
@@ -185,7 +184,7 @@ URL: {article.url}
                 stories_covered=[]
             )
 
-    def generate_context_segment(self, 
+    async def generate_context_segment(self, 
                                region: str = 'american',
                                focus_stories: Optional[List[str]] = None) -> NewscastSegment:
         """
@@ -203,13 +202,13 @@ URL: {article.url}
             logger.info(f"Fetching {region} news for context analysis")
             
             # Get both general and political news for richer context
-            general_articles = self.search_service.search_headlines(
+            general_articles = await self.search_service.search_headlines(
                 region=region, category='general', limit=8, hours_back=48
             )
-            political_articles = self.search_service.search_headlines(
+            political_articles = await self.search_service.search_headlines(
                 region=region, category='politics', limit=5, hours_back=48
             )
-            business_articles = self.search_service.search_headlines(
+            business_articles = await self.search_service.search_headlines(
                 region=region, category='business', limit=5, hours_back=48
             )
             
@@ -234,7 +233,7 @@ URL: {article.url}
             articles_text = self._format_articles_for_prompt(unique_articles[:12])
             focus_text = ', '.join(focus_stories) if focus_stories else "Top 2-3 most significant stories"
             
-            prompt = self.prompts['context'].replace('{articles}', articles_text)
+            prompt = self.prompts.get_context_prompt().replace('{articles}', articles_text)
             prompt = prompt.replace('{focus_stories}', focus_text)
             
             # Generate content with Claude
@@ -257,7 +256,7 @@ URL: {article.url}
                 stories_covered=[]
             )
 
-    def generate_full_newscast(self, 
+    async def generate_full_newscast(self, 
                              region: str = 'american',
                              category: str = 'general') -> Dict[str, NewscastSegment]:
         """
@@ -273,11 +272,11 @@ URL: {article.url}
         logger.info(f"Generating full newscast for {region} {category} news")
         
         # Generate headlines first
-        headlines_segment = self.generate_headlines_segment(region, category)
+        headlines_segment = await self.generate_headlines_segment(region, category)
         
         # Use headlines stories as focus for context
         focus_stories = headlines_segment.stories_covered[:3]
-        context_segment = self.generate_context_segment(region, focus_stories)
+        context_segment = await self.generate_context_segment(region, focus_stories)
         
         return {
             'headlines': headlines_segment,
@@ -286,25 +285,25 @@ URL: {article.url}
 
 # Example usage and testing
 if __name__ == "__main__":
+    import asyncio
     # Initialize agent
     agent = NewsAgent()
     
-    # Test headlines generation
-    print("=== GENERATING HEADLINES SEGMENT ===")
-    headlines = agent.generate_headlines_segment('american', 'general')
-    print(f"Duration: {headlines.duration_estimate}s")
-    print(f"Stories: {len(headlines.stories_covered)}")
-    print("Content:")
-    print(headlines.content)
-    print("\n" + "="*50 + "\n")
+    async def main():
+        print("=== GENERATING HEADLINES SEGMENT ===")
+        headlines = await agent.generate_headlines_segment('american', 'general')
+        print(f"Duration: {headlines.duration_estimate}s")
+        print(f"Stories: {len(headlines.stories_covered)}")
+        print("Content:")
+        print(headlines.content)
+        print("\n" + "="*50 + "\n")
+        
+        print("=== GENERATING FULL NEWSCAST ===")
+        newscast = await agent.generate_full_newscast('american', 'general')
+        print("HEADLINES SEGMENT:")
+        print(newscast['headlines'].content)
+        print("\n" + "-"*30 + "\n")
+        print("CONTEXT SEGMENT:")
+        print(newscast['context'].content)
     
-    # Test full newscast
-    print("=== GENERATING FULL NEWSCAST ===")
-    newscast = agent.generate_full_newscast('american', 'general')
-    
-    print("HEADLINES SEGMENT:")
-    print(newscast['headlines'].content)
-    print("\n" + "-"*30 + "\n")
-    
-    print("CONTEXT SEGMENT:")
-    print(newscast['context'].content)
+    asyncio.run(main())
