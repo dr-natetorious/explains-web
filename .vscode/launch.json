@@ -3,6 +3,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "API",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "api",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": ["full"],
+            "env": {
+                "AWS_PROFILE": "drnate-explains-admin",
+                "AWS_DEFAULT_REGION": "us-east-1",
+                "THENEWSAPI_KEY": "a606711b56e343edab467cbf4a0f4b42",
+                "PYTHONPATH": "${workspaceFolder}/src"
+            }
+        },
+        {
             "name": "CLI",
             "type": "debugpy",
             "request": "launch",

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Headlines - Dr Nate Explains{% endblock %}
+
+{% block description %}Stay informed with AI-powered news analysis. Get headlines with historical context and adjustable perspective from liberal to conservative, simple to advanced.{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero__content">
+            <div class="hero__text">
+                <h1 class="hero__title">
+                    News That Makes Sense
+                </h1>
+                <p class="hero__subtitle">
+                    Get AI-powered analysis of today's headlines with historical context and forward-looking insights. 
+                    Adjust the complexity and perspective to match your needs.
+                </p>
+                <div class="hero__actions">
+                    <a href="#headlines" class="btn btn--primary btn--lg">
+                        <i class="bi bi-newspaper" aria-hidden="true"></i>
+                        <span>View Headlines</span>
+                    </a>
+                    <a href="/about" class="btn btn--outline btn--lg">
+                        Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="hero__visual">
+                <div class="hero__icon">
+                    <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Lean Control Section -->
+<section class="perspective-control">
+    <div class="container">
+        <lean-control lean="0" context="general"></lean-control>
+    </div>
+</section>
+
+<!-- Headlines Section -->
+<section id="headlines" class="headlines-section">
+    <div class="container">
+        <div class="headlines-section__header">
+            <h2 class="headlines-section__title">Latest Headlines</h2>
+            <category-filter></category-filter>
+        </div>
+        
+        <headlines-grid></headlines-grid>
+    </div>
+</section>
+
+<!-- Featured Analysis Section -->
+<section class="featured-analysis">
+    <div class="container">
+        <h2 class="featured-analysis__title">Featured Analysis</h2>
+        
+        <div class="grid grid--3">
+            <div class="analysis-card">
+                <div class="analysis-card__icon analysis-card__icon--business">
+                    <i class="bi bi-graph-up" aria-hidden="true"></i>
+                </div>
+                <div class="analysis-card__content">
+                    <h3 class="analysis-card__title">Economic Trends</h3>
+                    <p class="analysis-card__meta">Updated 2 hours ago</p>
+                    <p class="analysis-card__description">
+                        Deep dive into the latest economic indicators and their historical significance.
+                    </p>
+                    <a href="/analysis/economic-trends" class="btn btn--outline btn--sm">
+                        Read Analysis
+                    </a>
+                </div>
+            </div>
+            
+            <div class="analysis-card">
+                <div class="analysis-card__icon analysis-card__icon--tech">
+                    <i class="bi bi-cpu" aria-hidden="true"></i>
+                </div>
+                <div class="analysis-card__content">
+                    <h3 class="analysis-card__title">Tech Innovation</h3>
+                    <p class="analysis-card__meta">Updated 4 hours ago</p>
+                    <p class="analysis-card__description">
+                        Understanding breakthrough technologies and their potential impact on society.
+                    </p>
+                    <a href="/analysis/tech-innovation" class="btn btn--outline btn--sm">
+                        Read Analysis
+                    </a>
+                </div>
+            </div>
+            
+            <div class="analysis-card">
+                <div class="analysis-card__icon analysis-card__icon--politics">
+                    <i class="bi bi-globe" aria-hidden="true"></i>
+                </div>
+                <div class="analysis-card__content">
+                    <h3 class="analysis-card__title">Global Affairs</h3>
+                    <p class="analysis-card__meta">Updated 6 hours ago</p>
+                    <p class="analysis-card__description">
+                        Contextualizing international events within historical and geopolitical frameworks.
+                    </p>
+                    <a href="/analysis/global-affairs" class="btn btn--outline btn--sm">
+                        Read Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Signup -->
+<section class="newsletter">
+    <div class="container">
+        <div class="newsletter__content">
+            <h2 class="newsletter__title">Stay Informed</h2>
+            <p class="newsletter__description">
+                Get daily summaries and analysis delivered to your inbox.
+            </p>
+            <form class="newsletter__form" id="newsletter-form">
+                <div class="newsletter__input-group">
+                    <input 
+                        type="email" 
+                        class="newsletter__input" 
+                        placeholder="Enter your email"
+                        required
+                        aria-label="Email address"
+                    >
+                    <button class="newsletter__button" type="submit">
+                        Subscribe
+                    </button>
+                </div>
+                <small class="newsletter__disclaimer">
+                    No spam. Unsubscribe anytime.
+                </small>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Newsletter form handling
+document.getElementById('newsletter-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = this.querySelector('input[type="email"]').value;
+    console.log('Newsletter signup:', email);
+    // Add actual signup logic here
+});
+</script>
+{% endblock %}

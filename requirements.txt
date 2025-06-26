@@ -2,4 +2,7 @@ boto3
 httpx
 pydantic>=2.0.0
 pytest
-pytest-asyncio 
+pytest-asyncio
+
+fastapi
+uvicorn # For running the FastAPI server
