@@ -7,7 +7,7 @@ from agents.news_agent import NewsAgent, NewscastSegment
 class DummyPrompts(Prompts):
     def __init__(self):
         pass
-
+    
     def get_headlines_prompt(self):
         return "[DATE] {articles}"
     def get_context_prompt(self):

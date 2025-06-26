@@ -3,16 +3,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File (AWS profile)",
+            "name": "CLI",
             "type": "debugpy",
             "request": "launch",
-            "program": "${file}",
+            "module": "cli",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
+            "args": ["full"],
             "env": {
                 "AWS_PROFILE": "drnate-explains-admin",
                 "AWS_DEFAULT_REGION": "us-east-1",
-                "THENEWSAPI_KEY": "a606711b56e343edab467cbf4a0f4b42"
+                "THENEWSAPI_KEY": "a606711b56e343edab467cbf4a0f4b42",
+                "PYTHONPATH": "${workspaceFolder}/src"
             }
         },
         {
@@ -26,7 +28,8 @@
             "env": {
                 "AWS_PROFILE": "drnate-explains-admin",
                 "AWS_DEFAULT_REGION": "us-east-1",
-                "THENEWSAPI_KEY": "a606711b56e343edab467cbf4a0f4b42"
+                "THENEWSAPI_KEY": "a606711b56e343edab467cbf4a0f4b42",
+                "PYTHONPATH": "${workspaceFolder}/src"
             }
         }
     ]
