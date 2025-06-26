@@ -2,7 +2,7 @@ import os
 import tempfile
 import shutil
 import pytest
-from src.prompts import Prompts
+from prompts import Prompts
 from pathlib import Path
 
 def create_temp_prompt_dir():

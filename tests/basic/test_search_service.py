@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from src.services import NewsSearchService, NewsArticle
+from services import NewsSearchService, NewsArticle
 
 import httpx
 from unittest.mock import patch

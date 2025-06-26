@@ -1,13 +1,13 @@
 import pytest
 import asyncio
 from unittest.mock import patch, AsyncMock, MagicMock
-from src.prompts.prompts import Prompts
-from src.agents.news_agent import NewsAgent, NewscastSegment
+from prompts.prompts import Prompts
+from agents.news_agent import NewsAgent, NewscastSegment
 
 class DummyPrompts(Prompts):
     def __init__(self):
         pass
-    
+
     def get_headlines_prompt(self):
         return "[DATE] {articles}"
     def get_context_prompt(self):
