@@ -1,206 +1,55 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dr Nate Explains{% endblock %}</title>
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="{% block description %}AI-powered news analysis with historical context and forward-looking insights. Adjust perspective and complexity to match your needs.{% endblock %}">
-    <meta name="keywords" content="news, analysis, AI, perspective, politics, technology, business, science">
-    <meta name="author" content="Dr Nate Explains">
-    
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="{% block og_title %}Dr Nate Explains - News That Makes Sense{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Get AI-powered analysis of today's headlines with historical context and adjustable perspective.{% endblock %}">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ request.url if request else 'https://dr.nate-explains.ai' }}">
-    <meta property="og:image" content="{% block og_image %}/static/images/og-image.jpg{% endblock %}">
-    <meta property="og:site_name" content="Dr Nate Explains">
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{% block twitter_title %}Dr Nate Explains{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}News analysis with adjustable perspective and complexity{% endblock %}">
-    <meta name="twitter:image" content="{% block twitter_image %}/static/images/twitter-card.jpg{% endblock %}">
-    
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="/static/css/site.css">
-    
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg">
-    <link rel="alternate icon" href="/static/images/favicon.ico">
-    
-    <!-- Theme preference (prevent flash) -->
-    <script>
-        (function() {
-            const theme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
-    </script>
-    
-    {% block extra_head %}{% endblock %}
+    <title>DR★NATE EXPLAINS - Professional SPA</title>
+    <link rel="stylesheet" href="/static/site.css">
 </head>
 <body>
-    <!-- Skip to main content for accessibility -->
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-    
-    <!-- Navigation -->
-    <nav class="navbar" role="navigation" aria-label="Main navigation">
-        <div class="container">
-            <div class="navbar__content">
-                <a class="navbar__brand" href="/" aria-label="Dr Nate Explains homepage">
-                    <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
-                    <span>Dr Nate Explains</span>
-                </a>
-                
-                <button class="navbar__toggle" type="button" id="nav-toggle" aria-expanded="false" aria-controls="navbar-menu" aria-label="Toggle navigation menu">
-                    <span class="navbar__toggle-icon"></span>
-                    <span class="navbar__toggle-icon"></span>
-                    <span class="navbar__toggle-icon"></span>
-                </button>
-                
-                <div class="navbar__menu" id="navbar-menu">
-                    <ul class="navbar__nav" role="menubar">
-                        <li class="navbar__item" role="none">
-                            <a class="navbar__link" href="/" role="menuitem">Headlines</a>
-                        </li>
-                        <li class="navbar__item" role="none">
-                            <a class="navbar__link" href="/topics" role="menuitem">Topics</a>
-                        </li>
-                        <li class="navbar__item" role="none">
-                            <a class="navbar__link" href="/about" role="menuitem">About</a>
-                        </li>
-                    </ul>
-                    
-                    <div class="navbar__actions">
-                        <!-- Search Button -->
-                        <button class="btn btn--outline btn--sm" id="search-toggle" aria-label="Open search">
-                            <i class="bi bi-search" aria-hidden="true"></i>
-                            <span class="btn__text">Search</span>
-                        </button>
-                        
-                        <!-- Theme Toggle -->
-                        <button class="btn btn--ghost btn--sm" id="theme-toggle" aria-label="Toggle theme">
-                            <i class="bi bi-sun-fill" aria-hidden="true"></i>
-                        </button>
+    <!-- Top Panel Component -->
+    <top-panel 
+        brand-top="DR★NATE" 
+        brand-bottom="EXPLAINS" 
+        topic="Dashboard" 
+        current-level="3"
+        role="navigation"
+        aria-label="Main navigation panel">
+    </top-panel>
+
+    <!-- Main content with hero section -->
+    <main class="container" role="main">
+        <!-- Hero section for wide screens -->
+        <section class="hero-section" aria-labelledby="hero-title">
+            <div class="hero-content">
+                <h1 id="hero-title" class="hero-title">Welcome to DR★NATE EXPLAINS</h1>
+                <p class="hero-subtitle">
+                    Advanced learning platform with adaptive difficulty levels. 
+                    Choose your expertise level and dive deep into comprehensive explanations 
+                    tailored to your knowledge level.
+                </p>
+                <div class="hero-stats" role="region" aria-label="Platform statistics">
+                    <div class="stat-item">
+                        <span class="stat-number" aria-label="5 difficulty levels available">5</span>
+                        <span class="stat-label">Difficulty Levels</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" aria-label="Unlimited topics available">∞</span>
+                        <span class="stat-label">Topics Available</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" aria-label="100 percent adaptive content">100%</span>
+                        <span class="stat-label">Adaptive Content</span>
                     </div>
                 </div>
             </div>
-        </div>
-    </nav>
+        </section>
 
-    <!-- Main Content -->
-    <main id="main-content" role="main">
-        {% block content %}{% endblock %}
+        <!-- Content that responds to state changes -->
+        <content-area role="region" aria-label="Main content area"></content-area>
+        <sidebar-widget role="complementary" aria-label="Progress tracking and quick actions"></sidebar-widget>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer" role="contentinfo">
-        <div class="container">
-            <div class="footer__content">
-                <div class="footer__section">
-                    <div class="footer__brand">
-                        <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
-                        <span>Dr Nate Explains</span>
-                    </div>
-                    <p class="footer__description">
-                        Making complex news accessible through AI-powered analysis and historical context.
-                    </p>
-                </div>
-                
-                <div class="footer__section">
-                    <h3 class="footer__title">Navigate</h3>
-                    <ul class="footer__links">
-                        <li><a href="/" class="footer__link">Headlines</a></li>
-                        <li><a href="/topics" class="footer__link">Topics</a></li>
-                        <li><a href="/about" class="footer__link">About</a></li>
-                        <li><a href="/privacy" class="footer__link">Privacy</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer__section">
-                    <h3 class="footer__title">Categories</h3>
-                    <ul class="footer__links">
-                        <li><a href="/politics" class="footer__link">Politics</a></li>
-                        <li><a href="/technology" class="footer__link">Technology</a></li>
-                        <li><a href="/business" class="footer__link">Business</a></li>
-                        <li><a href="/science" class="footer__link">Science</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer__section">
-                    <h3 class="footer__title">Connect</h3>
-                    <div class="footer__social">
-                        <a href="#" class="footer__social-link" aria-label="Follow on Twitter">
-                            <i class="bi bi-twitter" aria-hidden="true"></i>
-                        </a>
-                        <a href="#" class="footer__social-link" aria-label="Connect on LinkedIn">
-                            <i class="bi bi-linkedin" aria-hidden="true"></i>
-                        </a>
-                        <a href="#" class="footer__social-link" aria-label="Send email">
-                            <i class="bi bi-envelope" aria-hidden="true"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="footer__bottom">
-                <div class="footer__bottom-content">
-                    <small class="footer__copyright">
-                        &copy; 2025 Dr Nate Explains. All rights reserved.
-                    </small>
-                    <small class="footer__powered">
-                        Powered by AI • Updated continuously
-                    </small>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Search Overlay -->
-    <div class="search-overlay" id="search-overlay" role="dialog" aria-modal="true" aria-label="Search articles">
-        <div class="search-overlay__backdrop"></div>
-        <div class="search-overlay__content">
-            <div class="search-overlay__header">
-                <h2 class="search-overlay__title">Search Articles</h2>
-                <button class="search-overlay__close" id="search-close" aria-label="Close search">
-                    <i class="bi bi-x-lg" aria-hidden="true"></i>
-                </button>
-            </div>
-            <div class="search-overlay__body">
-                <div class="search-input">
-                    <input 
-                        type="text" 
-                        class="search-input__field" 
-                        placeholder="Search for topics, keywords, or phrases..."
-                        aria-label="Search input"
-                        id="search-input"
-                    >
-                    <button class="search-input__button" type="button" aria-label="Submit search">
-                        <i class="bi bi-search" aria-hidden="true"></i>
-                    </button>
-                </div>
-                <div class="search-results" id="search-results">
-                    <!-- Search results will be populated here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom Components -->
-    <script src="/static/js/components.js"></script>
-    
-    {% block extra_scripts %}{% endblock %}
+    <script type="module" src="/static/components.js"></script>
 </body>
 </html>

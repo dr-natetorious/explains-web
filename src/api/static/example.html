@@ -3,8 +3,476 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple SPA Demo</title>
-    <link rel="stylesheet" href="site.css">
+    <title>DR★NATE EXPLAINS - Professional SPA</title>
+    <style>
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f1419;
+            color: #f7fafc;
+            min-height: 100vh;
+        }
+
+        /* Container Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 32px;
+            min-height: calc(100vh - 120px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #1a1f2e 0%, #16213e 100%);
+            border-radius: 16px;
+            padding: 48px;
+            margin-bottom: 32px;
+            border: 1px solid #2d3748;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #90cdf4, transparent);
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #90cdf4, #bee3f8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #cbd5e0;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 32px;
+            margin-top: 32px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #90cdf4;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Top Panel Styles */
+        top-panel {
+            display: block;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(15, 20, 25, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #2d3748;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            padding: 16px 0;
+        }
+
+        .panel-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .brand-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-weight: bold;
+            color: #f7fafc;
+        }
+
+        .brand-top {
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-bottom: -2px;
+        }
+
+        .brand-bottom {
+            font-size: 12px;
+            letter-spacing: 1px;
+            color: #cbd5e0;
+        }
+
+        .divider {
+            width: 2px;
+            height: 40px;
+            background: linear-gradient(180deg, transparent 0%, #90cdf4 20%, #63b3ed 50%, #90cdf4 80%, transparent 100%);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: #90cdf4;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(144, 205, 244, 0.5);
+        }
+
+        .topic-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #f7fafc;
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .level-slider {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .slider-track {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(45, 55, 72, 0.8);
+            padding: 10px 18px;
+            border-radius: 25px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+            border: 1px solid #4a5568;
+        }
+
+        .level-line {
+            width: 3px;
+            height: 20px;
+            background: #718096;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .level-line.active {
+            background: linear-gradient(180deg, #90cdf4, #63b3ed);
+            height: 28px;
+            box-shadow: 0 0 15px rgba(144, 205, 244, 0.6);
+        }
+
+        .level-line:hover {
+            background: #a0aec0;
+            transform: scaleY(1.1);
+        }
+
+        .level-line.active:hover {
+            background: linear-gradient(180deg, #bee3f8, #90cdf4);
+        }
+
+        .level-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-weight: 600;
+            color: #90cdf4;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .level-line.active .level-label {
+            opacity: 1;
+        }
+
+        .slider-info {
+            font-size: 13px;
+            font-weight: 500;
+            color: #f7fafc;
+            background: rgba(144, 205, 244, 0.15);
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(144, 205, 244, 0.3);
+        }
+
+        /* Content Area Styles */
+        content-area {
+            display: block;
+        }
+
+        .content-card {
+            background: rgba(26, 31, 46, 0.8);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2d3748;
+            height: fit-content;
+        }
+
+        .content-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .content-header h2 {
+            color: #f7fafc;
+            margin: 0;
+        }
+
+        .difficulty-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .difficulty-1 { background: rgba(72, 187, 120, 0.2); color: #9ae6b4; border: 1px solid rgba(72, 187, 120, 0.4); }
+        .difficulty-2 { background: rgba(144, 205, 244, 0.2); color: #90cdf4; border: 1px solid rgba(144, 205, 244, 0.4); }
+        .difficulty-3 { background: rgba(251, 211, 141, 0.2); color: #fbd38d; border: 1px solid rgba(251, 211, 141, 0.4); }
+        .difficulty-4 { background: rgba(252, 129, 129, 0.2); color: #fc8181; border: 1px solid rgba(252, 129, 129, 0.4); }
+        .difficulty-5 { background: rgba(183, 148, 246, 0.2); color: #b794f6; border: 1px solid rgba(183, 148, 246, 0.4); }
+
+        .content-body {
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+
+        .content-body p {
+            margin-bottom: 16px;
+        }
+
+        .content-body strong {
+            color: #f7fafc;
+        }
+
+        /* Sidebar Styles */
+        sidebar-widget {
+            display: block;
+        }
+
+        .widget-card {
+            background: rgba(26, 31, 46, 0.8);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid #2d3748;
+            height: fit-content;
+        }
+
+        .widget-card h3 {
+            color: #f7fafc;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+
+        .widget-card p {
+            color: #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .widget-card strong {
+            color: #90cdf4;
+        }
+
+        .progress-bar {
+            background: #2d3748;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+            border: 1px solid #4a5568;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #90cdf4, #63b3ed);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .widget-card button {
+            margin: 8px 8px 0 0;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #90cdf4;
+            color: #1a202c;
+        }
+
+        .widget-card button:hover {
+            background: #bee3f8;
+            transform: translateY(-1px);
+        }
+
+        .widget-card button:nth-child(2) {
+            background: #9ae6b4;
+            color: #1a202c;
+        }
+
+        .widget-card button:nth-child(2):hover {
+            background: #c6f6d5;
+        }
+
+        /* Accessibility helpers */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Focus indicators */
+        .level-line:focus {
+            outline: 2px solid #90cdf4;
+            outline-offset: 2px;
+        }
+
+        button:focus {
+            outline: 2px solid #90cdf4;
+            outline-offset: 2px;
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .slider-info {
+                background: #000;
+                color: #fff;
+                border: 2px solid #fff;
+            }
+            
+            .difficulty-badge {
+                border-width: 2px;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+                max-width: 800px;
+                padding: 24px;
+            }
+            
+            .hero-section {
+                padding: 32px 24px;
+            }
+            
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-stats {
+                gap: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+                gap: 20px;
+            }
+            
+            .hero-section {
+                padding: 24px 20px;
+                margin-bottom: 20px;
+            }
+            
+            .hero-title {
+                font-size: 1.75rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .hero-stats {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+            
+            .panel-container {
+                gap: 20px;
+                padding: 0 20px;
+            }
+            
+            .topic-title {
+                font-size: 20px;
+            }
+            
+            .brand-top {
+                font-size: 14px;
+            }
+            
+            .level-line {
+                height: 16px;
+            }
+            
+            .level-line.active {
+                height: 22px;
+            }
+            
+            .slider-info {
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Top Panel Component -->
@@ -12,502 +480,340 @@
         brand-top="DR★NATE" 
         brand-bottom="EXPLAINS" 
         topic="Dashboard" 
-        current-level="3">
+        current-level="3"
+        role="navigation"
+        aria-label="Main navigation panel">
     </top-panel>
 
-    <!-- Content that responds to state changes -->
-    <main class="container">
-        <content-area></content-area>
-        <sidebar-widget></sidebar-widget>
+    <!-- Main content with hero section -->
+    <main class="container" role="main">
+        <!-- Hero section for wide screens -->
+        <section class="hero-section" aria-labelledby="hero-title">
+            <div class="hero-content">
+                <h1 id="hero-title" class="hero-title">Welcome to DR★NATE EXPLAINS</h1>
+                <p class="hero-subtitle">
+                    Advanced learning platform with adaptive difficulty levels. 
+                    Choose your expertise level and dive deep into comprehensive explanations 
+                    tailored to your knowledge level.
+                </p>
+                <div class="hero-stats" role="region" aria-label="Platform statistics">
+                    <div class="stat-item">
+                        <span class="stat-number" aria-label="5 difficulty levels available">5</span>
+                        <span class="stat-label">Difficulty Levels</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" aria-label="Unlimited topics available">∞</span>
+                        <span class="stat-label">Topics Available</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" aria-label="100 percent adaptive content">100%</span>
+                        <span class="stat-label">Adaptive Content</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Content that responds to state changes -->
+        <content-area role="region" aria-label="Main content area"></content-area>
+        <sidebar-widget role="complementary" aria-label="Progress tracking and quick actions"></sidebar-widget>
     </main>
 
-    <!-- Load components -->
-    <script type="module" src="components.js"></script>
-</body>
-</html>
-
-<!-- =============== site.css =============== -->
-<style id="site-css">
-/* Reset & Base */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    display: grid;
-    grid-template-columns: 1fr 300px;
-    gap: 20px;
-}
-
-@media (max-width: 768px) {
-    .container {
-        grid-template-columns: 1fr;
-        padding: 15px;
-    }
-}
-
-/* Top Panel Styles */
-top-panel {
-    display: block;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    padding: 20px 0;
-}
-
-.panel-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    align-items: center;
-    gap: 30px;
-}
-
-.brand-icon {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    font-weight: bold;
-    color: #2c3e50;
-}
-
-.brand-top {
-    font-size: 16px;
-    letter-spacing: 2px;
-    margin-bottom: -2px;
-}
-
-.brand-bottom {
-    font-size: 12px;
-    letter-spacing: 1px;
-    color: #7f8c8d;
-}
-
-.divider {
-    width: 2px;
-    height: 40px;
-    background: linear-gradient(180deg, transparent 0%, #3498db 20%, #2980b9 50%, #3498db 80%, transparent 100%);
-    border-radius: 2px;
-    position: relative;
-}
-
-.divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 6px;
-    height: 6px;
-    background: #3498db;
-    border-radius: 50%;
-    box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
-}
-
-.topic-title {
-    font-size: 24px;
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0;
-    flex-grow: 1;
-}
-
-.level-slider {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.slider-track {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.7);
-    padding: 8px 16px;
-    border-radius: 25px;
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.level-line {
-    width: 3px;
-    height: 20px;
-    background: #bdc3c7;
-    border-radius: 2px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-}
-
-.level-line.active {
-    background: linear-gradient(180deg, #3498db, #2980b9);
-    height: 28px;
-    box-shadow: 0 0 15px rgba(52, 152, 219, 0.6);
-}
-
-.level-line:hover {
-    background: #95a5a6;
-    transform: scaleY(1.1);
-}
-
-.level-line.active:hover {
-    background: linear-gradient(180deg, #5dade2, #3498db);
-}
-
-.level-label {
-    position: absolute;
-    bottom: -25px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 10px;
-    font-weight: 600;
-    color: #2980b9;
-    white-space: nowrap;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.level-line.active .level-label {
-    opacity: 1;
-}
-
-.slider-info {
-    font-size: 12px;
-    color: #7f8c8d;
-    margin-left: 10px;
-}
-
-/* Content Area Styles */
-content-area {
-    display: block;
-}
-
-.content-card {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.content-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.difficulty-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.difficulty-1 { background: #e8f5e8; color: #2e7d32; }
-.difficulty-2 { background: #e3f2fd; color: #1976d2; }
-.difficulty-3 { background: #fff3e0; color: #f57c00; }
-.difficulty-4 { background: #fce4ec; color: #c2185b; }
-.difficulty-5 { background: #f3e5f5; color: #7b1fa2; }
-
-/* Sidebar Styles */
-sidebar-widget {
-    display: block;
-}
-
-.widget-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.progress-bar {
-    background: #ecf0f1;
-    border-radius: 10px;
-    height: 8px;
-    overflow: hidden;
-    margin: 12px 0;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3498db, #2980b9);
-    border-radius: 10px;
-    transition: width 0.5s ease;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .panel-container {
-        gap: 15px;
-        padding: 0 15px;
-    }
-    
-    .topic-title {
-        font-size: 20px;
-    }
-    
-    .brand-top {
-        font-size: 14px;
-    }
-    
-    .level-line {
-        height: 16px;
-    }
-    
-    .level-line.active {
-        height: 22px;
-    }
-}
-</style>
-
-<!-- =============== components.js =============== -->
-<script type="module" id="components-js">
-// Global State Management
-class AppState extends EventTarget {
-    constructor() {
-        super();
-        this.state = {
-            currentLevel: 3,
-            currentTopic: 'Dashboard',
-            brandTop: 'DR★NATE',
-            brandBottom: 'EXPLAINS'
-        };
-    }
-    
-    setState(updates) {
-        const oldState = { ...this.state };
-        this.state = { ...this.state, ...updates };
-        
-        console.log('State updated:', updates);
-        
-        this.dispatchEvent(new CustomEvent('statechange', {
-            detail: { oldState, newState: this.state, updates }
-        }));
-    }
-    
-    get level() { return this.state.currentLevel; }
-    get topic() { return this.state.currentTopic; }
-    get brandTop() { return this.state.brandTop; }
-    get brandBottom() { return this.state.brandBottom; }
-}
-
-// Global state instance
-const appState = new AppState();
-
-// Top Panel Component
-class TopPanel extends HTMLElement {
-    constructor() {
-        super();
-        this.levelLabels = ['Basic', 'Intermediate', 'Advanced', 'Expert', 'Master'];
-    }
-    
-    connectedCallback() {
-        // Initialize from attributes
-        const level = parseInt(this.getAttribute('current-level')) || 3;
-        const topic = this.getAttribute('topic') || 'Dashboard';
-        const brandTop = this.getAttribute('brand-top') || 'DR★NATE';
-        const brandBottom = this.getAttribute('brand-bottom') || 'EXPLAINS';
-        
-        // Update global state
-        appState.setState({
-            currentLevel: level,
-            currentTopic: topic,
-            brandTop,
-            brandBottom
-        });
-        
-        this.render();
-        
-        // Listen for global state changes
-        appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLevel || e.detail.updates.currentTopic) {
-                this.render();
+    <script type="module">
+        // Global State Management
+        class AppState extends EventTarget {
+            constructor() {
+                super();
+                this.state = {
+                    currentLevel: 3,
+                    currentTopic: 'Dashboard',
+                    brandTop: 'DR★NATE',
+                    brandBottom: 'EXPLAINS'
+                };
             }
-        });
-        
-        // Handle clicks
-        this.addEventListener('click', this.handleClick.bind(this));
-    }
-    
-    handleClick(e) {
-        if (e.target.matches('.level-line')) {
-            const newLevel = parseInt(e.target.dataset.level);
-            appState.setState({ currentLevel: newLevel });
             
-            // Animation feedback
-            e.target.style.transform = 'scaleY(1.2)';
-            setTimeout(() => {
-                e.target.style.transform = '';
-            }, 150);
+            setState(updates) {
+                const oldState = { ...this.state };
+                this.state = { ...this.state, ...updates };
+                
+                console.log('State updated:', updates);
+                
+                this.dispatchEvent(new CustomEvent('statechange', {
+                    detail: { oldState, newState: this.state, updates }
+                }));
+            }
+            
+            get level() { return this.state.currentLevel; }
+            get topic() { return this.state.currentTopic; }
+            get brandTop() { return this.state.brandTop; }
+            get brandBottom() { return this.state.brandBottom; }
         }
-    }
-    
-    render() {
-        const state = appState.state;
-        
-        this.innerHTML = `
-            <div class="panel-container">
-                <div class="brand-icon">
-                    <div class="brand-top">${state.brandTop}</div>
-                    <div class="brand-bottom">${state.brandBottom}</div>
-                </div>
-                
-                <div class="divider"></div>
-                
-                <h1 class="topic-title">${state.currentTopic}</h1>
-                
-                <div class="level-slider">
-                    <div class="slider-track">
-                        ${this.renderLevelLines()}
-                    </div>
-                    <div class="slider-info">Level ${state.currentLevel}/5</div>
-                </div>
-            </div>
-        `;
-    }
-    
-    renderLevelLines() {
-        return Array.from({ length: 5 }, (_, index) => {
-            const level = index + 1;
-            const isActive = level === appState.level;
-            return `
-                <div class="level-line ${isActive ? 'active' : ''}" data-level="${level}">
-                    <div class="level-label">${this.levelLabels[index]}</div>
-                </div>
-            `;
-        }).join('');
-    }
-}
 
-// Content Area Component
-class ContentArea extends HTMLElement {
-    connectedCallback() {
-        this.render();
-        
-        // Listen for state changes
-        appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLevel || e.detail.updates.currentTopic) {
-                this.render();
+        // Global state instance
+        const appState = new AppState();
+
+        // Top Panel Component
+        class TopPanel extends HTMLElement {
+            constructor() {
+                super();
+                this.levelLabels = ['Basic', 'Intermediate', 'Advanced', 'Expert', 'Master'];
             }
-        });
-    }
-    
-    render() {
-        const state = appState.state;
-        const difficultyNames = ['Basic', 'Intermediate', 'Advanced', 'Expert', 'Master'];
-        
-        this.innerHTML = `
-            <div class="content-card">
-                <div class="content-header">
-                    <h2>${state.currentTopic}</h2>
-                    <span class="difficulty-badge difficulty-${state.currentLevel}">
-                        ${difficultyNames[state.currentLevel - 1]}
-                    </span>
-                </div>
+            
+            connectedCallback() {
+                // Initialize from attributes
+                const level = parseInt(this.getAttribute('current-level')) || 3;
+                const topic = this.getAttribute('topic') || 'Dashboard';
+                const brandTop = this.getAttribute('brand-top') || 'DR★NATE';
+                const brandBottom = this.getAttribute('brand-bottom') || 'EXPLAINS';
                 
-                <div class="content-body">
-                    <p>This content adapts to <strong>Level ${state.currentLevel}</strong> complexity.</p>
+                // Update global state
+                appState.setState({
+                    currentLevel: level,
+                    currentTopic: topic,
+                    brandTop,
+                    brandBottom
+                });
+                
+                this.render();
+                
+                // Listen for global state changes
+                appState.addEventListener('statechange', (e) => {
+                    if (e.detail.updates.currentLevel || e.detail.updates.currentTopic) {
+                        this.render();
+                    }
+                });
+                
+                // Handle clicks and keyboard navigation
+                this.addEventListener('click', this.handleClick.bind(this));
+                this.addEventListener('keydown', this.handleKeydown.bind(this));
+            }
+            
+            handleClick(e) {
+                if (e.target.matches('.level-line')) {
+                    const newLevel = parseInt(e.target.dataset.level);
+                    appState.setState({ currentLevel: newLevel });
                     
-                    ${this.getContentForLevel(state.currentLevel)}
-                </div>
-            </div>
-        `;
-    }
-    
-    getContentForLevel(level) {
-        const content = {
-            1: '<p>🟢 <strong>Basic:</strong> Simple explanations and step-by-step guides.</p>',
-            2: '<p>🔵 <strong>Intermediate:</strong> More detailed information with examples.</p>',
-            3: '<p>🟠 <strong>Advanced:</strong> In-depth analysis and technical details.</p>',
-            4: '<p>🔴 <strong>Expert:</strong> Complex concepts and advanced techniques.</p>',
-            5: '<p>🟣 <strong>Master:</strong> Cutting-edge research and theoretical frameworks.</p>'
-        };
-        
-        return content[level] || content[3];
-    }
-}
-
-// Sidebar Widget Component
-class SidebarWidget extends HTMLElement {
-    connectedCallback() {
-        this.render();
-        
-        // Listen for state changes
-        appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLevel) {
-                this.render();
+                    // Update focus and ARIA attributes
+                    this.querySelectorAll('.level-line').forEach(line => {
+                        line.setAttribute('aria-checked', 'false');
+                        line.setAttribute('tabindex', '-1');
+                    });
+                    
+                    e.target.setAttribute('aria-checked', 'true');
+                    e.target.setAttribute('tabindex', '0');
+                    e.target.focus();
+                    
+                    // Update aria-activedescendant
+                    const radioGroup = this.querySelector('[role="radiogroup"]');
+                    radioGroup.setAttribute('aria-activedescendant', `level-${newLevel}`);
+                    
+                    // Animation feedback
+                    e.target.style.transform = 'scaleY(1.2)';
+                    setTimeout(() => {
+                        e.target.style.transform = '';
+                    }, 150);
+                }
             }
+            
+            handleKeydown(e) {
+                if (e.target.matches('.level-line')) {
+                    const currentLevel = parseInt(e.target.dataset.level);
+                    let newLevel = currentLevel;
+                    
+                    switch(e.key) {
+                        case 'ArrowLeft':
+                        case 'ArrowUp':
+                            e.preventDefault();
+                            newLevel = Math.max(1, currentLevel - 1);
+                            break;
+                        case 'ArrowRight':
+                        case 'ArrowDown':
+                            e.preventDefault();
+                            newLevel = Math.min(5, currentLevel + 1);
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            newLevel = 1;
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            newLevel = 5;
+                            break;
+                        case ' ':
+                        case 'Enter':
+                            e.preventDefault();
+                            // Level is already selected, just announce it
+                            break;
+                        default:
+                            return;
+                    }
+                    
+                    if (newLevel !== currentLevel) {
+                        appState.setState({ currentLevel: newLevel });
+                        // Focus will be set in the next render cycle
+                        setTimeout(() => {
+                            const newElement = this.querySelector(`[data-level="${newLevel}"]`);
+                            if (newElement) newElement.focus();
+                        }, 0);
+                    }
+                }
+            }
+            
+            render() {
+                const state = appState.state;
+                
+                this.innerHTML = `
+                    <div class="panel-container">
+                        <div class="brand-icon" role="img" aria-label="${state.brandTop} ${state.brandBottom} logo">
+                            <div class="brand-top">${state.brandTop}</div>
+                            <div class="brand-bottom">${state.brandBottom}</div>
+                        </div>
+                        
+                        <div class="divider" role="separator" aria-hidden="true"></div>
+                        
+                        <h1 class="topic-title" id="current-topic">${state.currentTopic}</h1>
+                        
+                        <div class="level-slider" role="group" aria-labelledby="level-slider-label">
+                            <div id="level-slider-label" class="sr-only">Difficulty level selector</div>
+                            <div class="slider-track" role="radiogroup" aria-label="Select difficulty level" aria-activedescendant="level-${state.currentLevel}">
+                                ${this.renderLevelLines()}
+                            </div>
+                            <div class="slider-info" aria-live="polite" aria-atomic="true">Level ${state.currentLevel}/5</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            renderLevelLines() {
+                return Array.from({ length: 5 }, (_, index) => {
+                    const level = index + 1;
+                    const isActive = level === appState.level;
+                    return `
+                        <div class="level-line ${isActive ? 'active' : ''}" 
+                             data-level="${level}"
+                             role="radio"
+                             aria-checked="${isActive}"
+                             aria-label="Level ${level}: ${this.levelLabels[index]}"
+                             id="level-${level}"
+                             tabindex="${isActive ? '0' : '-1'}">
+                            <div class="level-label" aria-hidden="true">${this.levelLabels[index]}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Content Area Component
+        class ContentArea extends HTMLElement {
+            connectedCallback() {
+                this.render();
+                
+                // Listen for state changes
+                appState.addEventListener('statechange', (e) => {
+                    if (e.detail.updates.currentLevel || e.detail.updates.currentTopic) {
+                        this.render();
+                    }
+                });
+            }
+            
+            render() {
+                const state = appState.state;
+                const difficultyNames = ['Basic', 'Intermediate', 'Advanced', 'Expert', 'Master'];
+                
+                this.innerHTML = `
+                    <div class="content-card">
+                        <div class="content-header">
+                            <h2 id="content-title">${state.currentTopic}</h2>
+                            <span class="difficulty-badge difficulty-${state.currentLevel}" 
+                                  aria-label="Difficulty level: ${difficultyNames[state.currentLevel - 1]}">
+                                ${difficultyNames[state.currentLevel - 1]}
+                            </span>
+                        </div>
+                        
+                        <div class="content-body" aria-labelledby="content-title">
+                            <p>This content adapts to <strong>Level ${state.currentLevel}</strong> complexity.</p>
+                            
+                            ${this.getContentForLevel(state.currentLevel)}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            getContentForLevel(level) {
+                const content = {
+                    1: '<p>🟢 <strong>Basic:</strong> Simple explanations and step-by-step guides.</p>',
+                    2: '<p>🔵 <strong>Intermediate:</strong> More detailed information with examples.</p>',
+                    3: '<p>🟠 <strong>Advanced:</strong> In-depth analysis and technical details.</p>',
+                    4: '<p>🔴 <strong>Expert:</strong> Complex concepts and advanced techniques.</p>',
+                    5: '<p>🟣 <strong>Master:</strong> Cutting-edge research and theoretical frameworks.</p>'
+                };
+                
+                return content[level] || content[3];
+            }
+        }
+
+        // Sidebar Widget Component
+        class SidebarWidget extends HTMLElement {
+            connectedCallback() {
+                this.render();
+                
+                // Listen for state changes
+                appState.addEventListener('statechange', (e) => {
+                    if (e.detail.updates.currentLevel) {
+                        this.render();
+                    }
+                });
+            }
+            
+            render() {
+                const state = appState.state;
+                const progress = (state.currentLevel / 5) * 100;
+                
+                this.innerHTML = `
+                    <div class="widget-card">
+                        <h3 id="progress-title">Progress Tracker</h3>
+                        <p>Current Level: <strong>${state.currentLevel}/5</strong></p>
+                        
+                        <div class="progress-bar" role="progressbar" 
+                             aria-valuenow="${progress}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100"
+                             aria-labelledby="progress-title"
+                             aria-describedby="progress-description">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        
+                        <p id="progress-description"><small>${Math.round(progress)}% Complete</small></p>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4>Quick Actions</h4>
+                            <button onclick="appState.setState({currentTopic: 'Settings'})" 
+                                    aria-label="Navigate to Settings page">
+                                Go to Settings
+                            </button>
+                            <button onclick="appState.setState({currentTopic: 'Profile'})" 
+                                    aria-label="Navigate to Profile page">
+                                View Profile
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Register all components
+        customElements.define('top-panel', TopPanel);
+        customElements.define('content-area', ContentArea);
+        customElements.define('sidebar-widget', SidebarWidget);
+
+        // Make appState globally available for demo buttons
+        window.appState = appState;
+
+        // Demo: Log all state changes
+        appState.addEventListener('statechange', (e) => {
+            console.log('🔄 State Change:', e.detail.updates);
         });
-    }
-    
-    render() {
-        const state = appState.state;
-        const progress = (state.currentLevel / 5) * 100;
-        
-        this.innerHTML = `
-            <div class="widget-card">
-                <h3>Progress Tracker</h3>
-                <p>Current Level: <strong>${state.currentLevel}/5</strong></p>
-                
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${progress}%"></div>
-                </div>
-                
-                <p><small>${Math.round(progress)}% Complete</small></p>
-                
-                <div style="margin-top: 20px;">
-                    <h4>Quick Actions</h4>
-                    <button onclick="appState.setState({currentTopic: 'Settings'})" 
-                            style="margin: 5px; padding: 8px 12px; border: none; border-radius: 6px; background: #3498db; color: white; cursor: pointer;">
-                        Go to Settings
-                    </button>
-                    <button onclick="appState.setState({currentTopic: 'Profile'})" 
-                            style="margin: 5px; padding: 8px 12px; border: none; border-radius: 6px; background: #2ecc71; color: white; cursor: pointer;">
-                        View Profile
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-}
 
-// Register all components
-customElements.define('top-panel', TopPanel);
-customElements.define('content-area', ContentArea);
-customElements.define('sidebar-widget', SidebarWidget);
-
-// Make appState globally available for demo buttons
-window.appState = appState;
-
-// Demo: Log all state changes
-appState.addEventListener('statechange', (e) => {
-    console.log('🔄 State Change:', e.detail.updates);
-});
-
-console.log('✅ All components loaded and registered!');
-</script>
+        console.log('✅ All components loaded and registered!');
+    </script>
 </body>
 </html>

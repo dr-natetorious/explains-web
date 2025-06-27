@@ -1,0 +1,79 @@
+# Configuration file for repositories to index
+# Update this file to add/remove repositories for vector indexing
+
+repositories:
+  - name: "company-docs"
+    url: "https://github.com/your-org/company-docs"
+    file_types: [".pdf", ".docx", ".md"]
+    enabled: true
+    description: "Main company documentation"
+    
+  - name: "technical-specs"
+    url: "https://github.com/your-org/technical-specifications"
+    file_types: [".md", ".pdf"]
+    enabled: true
+    description: "Technical specifications and architecture docs"
+    
+  - name: "user-manuals"
+    url: "https://github.com/your-org/user-manuals"
+    file_types: [".pdf", ".docx", ".md"]
+    enabled: true
+    description: "User manuals and guides"
+    
+  - name: "research-papers"
+    url: "https://github.com/your-org/research-papers"
+    file_types: [".pdf"]
+    enabled: false  # Disabled for now
+    description: "Research papers and academic content"
+
+# Global settings
+settings:
+  # Sentence transformer model to use for embeddings
+  model_name: "all-MiniLM-L6-v2"  # Fast and good quality
+  # Alternative models:
+  # "all-mpnet-base-v2"  # Higher quality, slower
+  # "multi-qa-MiniLM-L6-cos-v1"  # Optimized for Q&A
+  
+  # Text chunking settings
+  chunk_size: 512  # Maximum tokens per chunk
+  overlap: 50      # Overlap between chunks
+  
+  # File types to process
+  file_types: [".pdf", ".docx", ".doc", ".md", ".markdown"]
+  
+  # Processing settings
+  max_file_size_mb: 50  # Skip files larger than this
+  skip_binary_files: true
+  
+  # Async processing settings
+  max_workers: 4                    # Thread pool workers for CPU-intensive tasks
+  max_concurrent_downloads: 10      # Concurrent file downloads
+  max_concurrent_repos: 3           # Concurrent repository processing
+  
+  # Rate limiting for GitHub API
+  requests_per_minute: 30
+  
+  # Vector database settings
+  vector_db:
+    similarity_metric: "cosine"  # cosine, euclidean, or dot_product
+    index_type: "flat"           # flat or ivf (for large datasets)
+    
+# Notification settings (optional)
+notifications:
+  enabled: false
+  slack_webhook_url: ""
+  email_recipients: []
+  
+# GitHub settings
+github:
+  # GitHub token should be set as environment variable GITHUB_TOKEN
+  # or secrets.GITHUB_TOKEN in GitHub Actions
+  api_base_url: "https://api.github.com"
+  raw_base_url: "https://raw.githubusercontent.com"
+  
+# Logging settings
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "pipeline.log"
+  max_size_mb: 10
+  backup_count: 3

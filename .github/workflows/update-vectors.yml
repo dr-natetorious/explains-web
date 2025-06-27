@@ -1,0 +1,207 @@
+name: Update Vector Database
+
+on:
+  schedule:
+    # Run every Sunday at 2 AM UTC
+    - cron: '0 2 * * 0'
+  
+  workflow_dispatch:
+    # Allow manual triggering
+    inputs:
+      force_rebuild:
+        description: 'Force complete rebuild of vector database'
+        required: false
+        default: false
+        type: boolean
+      target_repos:
+        description: 'Comma-separated list of repos to process (empty for all)'
+        required: false
+        default: ''
+        type: string
+  
+  repository_dispatch:
+    # Allow triggering from other repos
+    types: [update-vectors]
+
+env:
+  PYTHON_VERSION: '3.13'
+  CACHE_VERSION: v1
+
+jobs:
+  update-vectors:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        lfs: true
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ env.CACHE_VERSION }}-
+          ${{ runner.os }}-pip-
+    
+    - name: Cache sentence-transformers models
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/torch/sentence_transformers
+        key: ${{ runner.os }}-sentence-transformers-${{ env.CACHE_VERSION }}
+        restore-keys: |
+          ${{ runner.os }}-sentence-transformers-
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y poppler-utils
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Check existing vector database
+      id: check-db
+      run: |
+        if [ -f "data/faiss_index/index.faiss" ]; then
+          echo "existing_db=true" >> $GITHUB_OUTPUT
+          python -c "
+          from src.vector_store import VectorStore
+          import json
+          vs = VectorStore()
+          stats = vs.get_stats()
+          print('Current database stats:')
+          print(json.dumps(stats, indent=2))
+          "
+        else
+          echo "existing_db=false" >> $GITHUB_OUTPUT
+          echo "No existing vector database found"
+        fi
+    
+    - name: Load repository configuration
+      id: load-config
+      run: |
+        # Read repos to index from config file
+        if [ -f "config/repos_to_index.yaml" ]; then
+          echo "Config file found"
+          cat config/repos_to_index.yaml
+        else
+          echo "No config file found, using default"
+        fi
+    
+    - name: Process documents and update vectors
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        FORCE_REBUILD: ${{ github.event.inputs.force_rebuild || 'false' }}
+        TARGET_REPOS: ${{ github.event.inputs.target_repos || '' }}
+      run: |
+        python src/pipeline.py \
+          --config config/repos_to_index.yaml \
+          --force-rebuild $FORCE_REBUILD \
+          --target-repos "$TARGET_REPOS" \
+          --max-workers 4 \
+          --max-concurrent-repos 2
+    
+    - name: Generate processing report
+      run: |
+        python -c "
+        from src.vector_store import VectorStore
+        from datetime import datetime
+        import json
+        
+        vs = VectorStore()
+        stats = vs.get_stats()
+        
+        report = {
+          'processed_at': datetime.now().isoformat(),
+          'stats': stats,
+          'workflow_run': '${{ github.run_id }}',
+          'trigger': '${{ github.event_name }}'
+        }
+        
+        with open('processing_report.json', 'w') as f:
+          json.dump(report, f, indent=2)
+        
+        print('Processing completed!')
+        print('Final stats:')
+        print(json.dumps(stats, indent=2))
+        "
+    
+    - name: Upload processing report
+      uses: actions/upload-artifact@v3
+      with:
+        name: processing-report
+        path: processing_report.json
+    
+    - name: Commit updated vector database
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Add all changes in data directory
+        git add data/ -f
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update vector database - $(date -u +%Y-%m-%d_%H:%M:%S_UTC)"
+          git push
+          echo "Vector database updated and pushed"
+        fi
+    
+    - name: Clean up temporary files
+      if: always()
+      run: |
+        python -c "
+        from src.vector_store import VectorStore
+        vs = VectorStore()
+        vs.cleanup_temp_files()
+        print('Temporary files cleaned up')
+        "
+    
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "Vector database update failed!"
+        echo "Check the logs for details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        # You can add notification logic here (Slack, email, etc.)
+    
+    - name: Set up search API (optional)
+      if: success()
+      run: |
+        # Optional: Deploy or update search API
+        echo "Vector database updated successfully"
+        echo "Search API can be updated here if needed"
+
+  # Optional: Deploy search interface
+  deploy-search-api:
+    needs: update-vectors
+    runs-on: ubuntu-latest
+    if: success() && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Deploy to GitHub Pages (optional)
+      # This would deploy a simple search interface
+      # You can customize this based on your needs
+      run: |
+        echo "Deploying search interface..."
+        # Add your deployment logic here
