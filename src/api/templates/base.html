@@ -1,33 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DR★NATE EXPLAINS - Professional SPA</title>
+    <title>{% block title %}{{ title | default('DR★NATE EXPLAINS - Professional SPA') }}{% endblock %}</title>
+    {% block extra_head %}{% endblock %}
     <link rel="stylesheet" href="/static/site.css">
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body{% if body_class %} class="{{ body_class }}"{% endif %}>
+    {% block top_panel %}
     <!-- Top Panel Component -->
     <top-panel 
-        brand-top="DR★NATE" 
-        brand-bottom="EXPLAINS" 
-        topic="Dashboard" 
-        current-level="3"
+        brand-top="{{ brand_top | default('DR★NATE') }}" 
+        brand-bottom="{{ brand_bottom | default('EXPLAINS') }}" 
+        topic="{{ current_topic | default('Dashboard') }}" 
+        current-level="{{ current_level | default('3') }}"
         role="navigation"
         aria-label="Main navigation panel">
     </top-panel>
+    {% endblock %}
 
+    {% block main %}
     <!-- Main content with hero section -->
     <main class="container" role="main">
+        {% block hero %}
         <!-- Hero section for wide screens -->
         <section class="hero-section" aria-labelledby="hero-title">
             <div class="hero-content">
-                <h1 id="hero-title" class="hero-title">Welcome to DR★NATE EXPLAINS</h1>
+                <h1 id="hero-title" class="hero-title">{% block hero_title %}Welcome to {{ brand_top | default('DR★NATE') }} {{ brand_bottom | default('EXPLAINS') }}{% endblock %}</h1>
                 <p class="hero-subtitle">
+                    {% block hero_subtitle %}
                     Advanced learning platform with adaptive difficulty levels. 
                     Choose your expertise level and dive deep into comprehensive explanations 
                     tailored to your knowledge level.
+                    {% endblock %}
                 </p>
+                {% block hero_stats %}
                 <div class="hero-stats" role="region" aria-label="Platform statistics">
                     <div class="stat-item">
                         <span class="stat-number" aria-label="5 difficulty levels available">5</span>
@@ -42,14 +51,23 @@
                         <span class="stat-label">Adaptive Content</span>
                     </div>
                 </div>
+                {% endblock %}
             </div>
         </section>
+        {% endblock %}
 
+        {% block content %}
         <!-- Content that responds to state changes -->
         <content-area role="region" aria-label="Main content area"></content-area>
         <sidebar-widget role="complementary" aria-label="Progress tracking and quick actions"></sidebar-widget>
+        {% endblock %}
     </main>
+    {% endblock %}
 
+    {% block scripts %}
     <script type="module" src="/static/components.js"></script>
+    {% endblock %}
+    {% block extra_js %}{% endblock %}
+    {% block inline_js %}{% endblock %}
 </body>
 </html>

@@ -2,6 +2,7 @@ from pathlib import Path
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 
 ROOT_PATH = Path(__file__).parent
 templates_dir = ROOT_PATH / "templates"
@@ -17,6 +18,17 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory= (ROOT_PATH/ "static").absolute()), name="static")
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Configure appropriately for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Include API routers
 @app.get("/")
 def root(request:Request):
     class Stats:

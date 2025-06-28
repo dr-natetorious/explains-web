@@ -18,8 +18,8 @@ from datetime import datetime
 # Add current directory to path to import modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from src.doc_processor import DocumentProcessor
-from src.vector_store import VectorStore
+from .doc_processor import DocumentProcessor
+from .vector_store import VectorStore
 
 
 def setup_logging(log_level: str = "INFO"):
@@ -75,7 +75,7 @@ def should_process_repo(repo_config: Dict, target_repos: List[str]) -> bool:
 
 async def process_repository(repo_config: Dict, processor: DocumentProcessor, 
                       vector_store: VectorStore, force_rebuild: bool = False,
-                      github_token: str = None) -> Dict:
+                      github_token: str|None = None) -> Dict:
     """Process a single repository asynchronously"""
     logger = logging.getLogger(__name__)
     

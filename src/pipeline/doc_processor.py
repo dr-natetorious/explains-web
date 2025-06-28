@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 import PyPDF2
 import docx
 import markdown
+import requests
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
@@ -183,7 +184,7 @@ class DocumentProcessor:
         
         return chunks
     
-    def download_file_from_github(self, repo_url: str, file_path: str, token: str = None) -> str:
+    def download_file_from_github(self, repo_url: str, file_path: str, token: str = None) -> str|None:
         """Download a file from GitHub and return local path"""
         # Convert GitHub URL to raw content URL
         if repo_url.startswith('https://github.com/'):
@@ -214,7 +215,7 @@ class DocumentProcessor:
         print(f"Error downloading {file_path} from {repo_url}")
         return None
     
-    def get_repo_files(self, repo_url: str, file_types: List[str] = None, token: str = None) -> List[str]:
+    def get_repo_files(self, repo_url: str, file_types: List[str]|None = None, token: str|None = None) -> List[str]:
         """Get list of files from GitHub repo"""
         if file_types is None:
             file_types = ['.pdf', '.docx', '.doc', '.md', '.markdown']
