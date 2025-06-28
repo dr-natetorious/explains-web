@@ -25,3 +25,7 @@ markdown>=3.4.4
 
 # Configuration and data handling
 pyyaml>=6.0
+
+# GCP Gemini support
+google-generativeai>=0.3.0
+pyyaml>=6.0
