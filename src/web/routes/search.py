@@ -12,7 +12,6 @@ from datetime import datetime
 import logging
 
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sentence_transformers import SentenceTransformer
 import uvicorn
@@ -33,14 +32,6 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Global variables for loaded components
 vector_store: Optional[VectorStore] = None
