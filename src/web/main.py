@@ -38,6 +38,9 @@ def root(request:Request):
         "stats": Stats(),
     })
 
+from web.routes import include_routes
+include_routes(app)
+
 async def main():
     import uvicorn
     uvicorn.run("api.main:app", 

@@ -19,9 +19,7 @@ import uvicorn
 # Add current directory to path to import modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from pipeline import VectorStore
-
-
+from core.pipeline import VectorStore
 
 # Initialize FastAPI app
 app = FastAPI(

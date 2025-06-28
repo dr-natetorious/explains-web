@@ -1,0 +1,31 @@
+# config/application.yml
+ai_providers:
+  bedrock:
+    model_id: "anthropic.claude-3-5-sonnet-20241022-v2:0"
+    region: "us-east-1"
+    temperature: 0.7
+    max_tokens: 4000
+  
+  gemini:
+    model_id: "gemini-1.5-pro"
+    region: "us-central1"
+    temperature: 0.7
+    max_tokens: 4000
+
+aws:
+  region: "us-east-1"
+  profile: "default"
+
+pipeline:
+  max_workers: 4
+  max_concurrent_repos: 3
+  chunk_size: 512
+  overlap: 50
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+  debug: false
+
+logging:
+  level: "INFO"

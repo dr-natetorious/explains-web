@@ -288,6 +288,234 @@ class AIContentService(ContentGenerationService):
         return "<p>Preview not available</p>"
 
 
+# ===== AWS BEDROCK PROVIDER =====
+
+try:
+    import boto3
+    from botocore.exceptions import ClientError
+    AWS_BEDROCK_AVAILABLE = True
+except ImportError:
+    AWS_BEDROCK_AVAILABLE = False
+    print("AWS Bedrock SDK not available. Please install 'boto3' package.")
+
+if AWS_BEDROCK_AVAILABLE:
+    class BedrockModel(str, Enum):
+        """Available Bedrock models"""
+        CLAUDE_3_HAIKU = "anthropic.claude-3-haiku-20240307-v1:0"
+        CLAUDE_3_SONNET = "anthropic.claude-3-sonnet-20240229-v1:0"
+        CLAUDE_3_OPUS = "anthropic.claude-3-opus-20240229-v1:0"
+        CLAUDE_3_5_SONNET = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+        TITAN_TEXT_EXPRESS = "amazon.titan-text-express-v1"
+        JURASSIC_2_ULTRA = "ai21.j2-ultra-v1"
+
+    class BedrockConfig(AIProviderConfig):
+        """AWS Bedrock specific configuration"""
+        region_name: str = Field(default="us-east-1", description="AWS region")
+        model_id: BedrockModel = Field(default=BedrockModel.CLAUDE_3_5_SONNET, description="Model to use")
+        top_k: int = Field(default=250, ge=0, description="Top-k sampling")
+        stop_sequences: List[str] = Field(default_factory=list, description="Stop sequences")
+        
+        # AWS credentials (optional - can use IAM roles)
+        aws_access_key_id: Optional[str] = Field(None, description="AWS access key")
+        aws_secret_access_key: Optional[str] = Field(None, description="AWS secret key")
+        aws_session_token: Optional[str] = Field(None, description="AWS session token")
+
+    class BedrockProvider(BaseAIProvider):
+        """AWS Bedrock AI provider implementation"""
+        
+        def __init__(self, config: BedrockConfig):
+            super().__init__(config)
+            self.bedrock_config = config
+            self.client = self._create_client()
+        
+        def _create_client(self):
+            """Create Bedrock client"""
+            session_kwargs = {
+                "region_name": self.bedrock_config.region_name
+            }
+            
+            if self.bedrock_config.aws_access_key_id:
+                session_kwargs.update({
+                    "aws_access_key_id": self.bedrock_config.aws_access_key_id,
+                    "aws_secret_access_key": self.bedrock_config.aws_secret_access_key,
+                    "aws_session_token": self.bedrock_config.aws_session_token
+                })
+            
+            session = boto3.Session(**session_kwargs)
+            return session.client("bedrock-runtime")
+        
+        def _get_model_info(self) -> str:
+            return f"AWS Bedrock - {self.bedrock_config.model_id.value}"
+        
+        async def _call_api(self, prompt_data: Dict[str, Any]) -> AIProviderResponse:
+            """Call Bedrock API"""
+            system_prompt = self.prompt_templates.system_prompt.format(**prompt_data)
+            user_prompt = self.prompt_templates.user_prompt.format(**prompt_data)
+            
+            request_body = {
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": self.config.max_tokens,
+                "temperature": self.config.temperature,
+                "top_p": self.config.top_p,
+                "top_k": self.bedrock_config.top_k,
+                "stop_sequences": self.bedrock_config.stop_sequences,
+                "system": system_prompt,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": user_prompt
+                    }
+                ]
+            }
+            
+            loop = asyncio.get_event_loop()
+            
+            def _call_sync():
+                try:
+                    response = self.client.invoke_model(
+                        body=json.dumps(request_body),
+                        modelId=self.bedrock_config.model_id.value,
+                        accept="application/json",
+                        contentType="application/json"
+                    )
+                    
+                    response_body = json.loads(response.get("body").read())
+                    
+                    content = ""
+                    if response_body.get("content") and len(response_body["content"]) > 0:
+                        content = response_body["content"][0].get("text", "")
+                    
+                    usage_stats = response_body.get("usage", {})
+                    
+                    return AIProviderResponse(
+                        content=content,
+                        model_info=self._get_model_info(),
+                        usage_stats=usage_stats,
+                        metadata={
+                            "stop_reason": response_body.get("stop_reason"),
+                            "response_id": response_body.get("id")
+                        }
+                    )
+                    
+                except ClientError as e:
+                    raise Exception(f"Bedrock API error: {e}")
+                except Exception as e:
+                    raise Exception(f"Bedrock error: {e}")
+            
+            return await loop.run_in_executor(None, _call_sync)
+
+# ===== GCP GEMINI PROVIDER =====
+
+try:
+    import google.generativeai as genai
+    from google.generativeai.types import HarmCategory, HarmBlockThreshold
+    GCP_AVAILABLE = True
+except ImportError:
+    GCP_AVAILABLE = False
+    print("Google Generative AI library not available. Please install 'google-generativeai' package.")
+
+if GCP_AVAILABLE:
+    class GeminiModel(str, Enum):
+        """Available Gemini models"""
+        GEMINI_1_5_PRO = "gemini-1.5-pro"
+        GEMINI_1_5_FLASH = "gemini-1.5-flash"
+        GEMINI_1_0_PRO = "gemini-1.0-pro"
+
+    class GeminiConfig(AIProviderConfig):
+        """Google Gemini specific configuration"""
+        model_name: GeminiModel = Field(default=GeminiModel.GEMINI_1_5_PRO, description="Gemini model to use")
+        api_key: str = Field(..., description="Google AI API key")
+        top_k: Optional[int] = Field(default=40, description="Top-k sampling")
+        candidate_count: int = Field(default=1, description="Number of response candidates")
+        
+        # Safety settings
+        safety_settings: Dict[str, str] = Field(
+            default={
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+            },
+            description="Safety filter settings"
+        )
+
+    class GeminiProvider(BaseAIProvider):
+        """Google Gemini AI provider implementation"""
+        
+        def __init__(self, config: GeminiConfig):
+            super().__init__(config)
+            self.gemini_config = config
+            self._configure_client()
+        
+        def _configure_client(self):
+            """Configure Gemini client"""
+            genai.configure(api_key=self.gemini_config.api_key)
+            
+            generation_config = genai.GenerationConfig(
+                temperature=self.config.temperature,
+                top_p=self.config.top_p,
+                top_k=self.gemini_config.top_k,
+                max_output_tokens=self.config.max_tokens,
+                candidate_count=self.gemini_config.candidate_count
+            )
+            
+            self.model = genai.GenerativeModel(
+                model_name=self.gemini_config.model_name.value,
+                generation_config=generation_config,
+                safety_settings=self.gemini_config.safety_settings
+            )
+        
+        def _get_model_info(self) -> str:
+            return f"Google Gemini - {self.gemini_config.model_name.value}"
+        
+        async def _call_api(self, prompt_data: Dict[str, Any]) -> AIProviderResponse:
+            """Call Gemini API"""
+            system_prompt = self.prompt_templates.system_prompt.format(**prompt_data)
+            user_prompt = self.prompt_templates.user_prompt.format(**prompt_data)
+            
+            # Combine system and user prompts for Gemini
+            full_prompt = f"{system_prompt}\n\n{user_prompt}"
+            
+            loop = asyncio.get_event_loop()
+            
+            def _call_sync():
+                try:
+                    response = self.model.generate_content(full_prompt)
+                    
+                    if not response.candidates:
+                        raise Exception("No candidates returned from Gemini")
+                    
+                    candidate = response.candidates[0]
+                    
+                    if candidate.finish_reason.name != "STOP":
+                        raise Exception(f"Generation stopped due to: {candidate.finish_reason.name}")
+                    
+                    content = candidate.content.parts[0].text if candidate.content.parts else ""
+                    
+                    usage_stats = {
+                        "prompt_tokens": response.usage_metadata.prompt_token_count if response.usage_metadata else 0,
+                        "completion_tokens": response.usage_metadata.candidates_token_count if response.usage_metadata else 0,
+                        "total_tokens": response.usage_metadata.total_token_count if response.usage_metadata else 0
+                    }
+                    
+                    return AIProviderResponse(
+                        content=content,
+                        model_info=self._get_model_info(),
+                        usage_stats=usage_stats,
+                        metadata={
+                            "finish_reason": candidate.finish_reason.name,
+                            "safety_ratings": [
+                                {"category": rating.category.name, "probability": rating.probability.name}
+                                for rating in candidate.safety_ratings
+                            ] if candidate.safety_ratings else []
+                        }
+                    )
+                    
+                except Exception as e:
+                    raise Exception(f"Gemini API error: {e}")
+            
+            return await loop.run_in_executor(None, _call_sync)
+
 # ===== USAGE EXAMPLES =====
 
 async def example_bedrock_usage():
