@@ -1,11 +1,13 @@
 from .search_service import NewsSearchService, NewsArticle
 from .content_service import (
     AIContentService,
-    AIProviderConfig,
-    AIProviderResponse,
     BaseAIProvider
 )
 
+from .contracts import (
+    AIProviderConfig,
+    AIProviderResponse,    
+)
 __all__ = [
     "NewsSearchService", 
     "NewsArticle",

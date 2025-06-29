@@ -2,19 +2,23 @@ from abc import ABC, abstractmethod
 import asyncio
 import json
 from typing import List, Optional, Dict, Any, Union
+from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from datetime import datetime
 from enum import Enum
 
 # Import existing service contracts
-from ..models import (
+from .lean import (
     ContentGenerationService, 
     GenerationRequest, 
     GenerationResponse,
     GeneratedComponent,
-    ComponentType,
     LeanAxis,
     LeanLevel,
+)
+
+from .contracts import (
+    ComponentType,
     AIProviderConfig,
     AIProviderResponse,
     PromptTemplate,

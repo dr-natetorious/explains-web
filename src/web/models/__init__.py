@@ -1,4 +1,4 @@
-from .lean import (
+from ...core.services.lean import (
     LeanAxis, 
     LeanLevel,
     ContentGenerationService,
@@ -18,7 +18,7 @@ LEAN_TYPES = [
     "GenerationResponse",
 ]
 
-from .content_provider import (
+from ...core.services.contracts import (
     AIProviderConfig,
     AIProviderResponse,
     PromptTemplate,

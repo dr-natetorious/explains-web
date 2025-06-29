@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Daily Articles - DR★NATE EXPLAINS{% endblock %}
+
+{% block hero_title %}Daily News Analysis{% endblock %}
+{% block hero_subtitle %}AI-generated news analysis at different complexity levels{% endblock %}
+
+{% block content %}
+<div class="level-selector">
+    <h2>Choose Your Level:</h2>
+    <a href="/daily/generate?level=1" class="level-button level-1">📚 Basic</a>
+    <a href="/daily/generate?level=2" class="level-button level-2">📖 Intermediate</a>
+    <a href="/daily/generate?level=3" class="level-button level-3">🔬 Advanced</a>
+    <a href="/daily/generate?level=4" class="level-button level-4">🎓 Expert</a>
+    <a href="/daily/generate?level=5" class="level-button level-5">🏆 Master</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.level-selector { margin: 2rem 0; }
+.level-button {
+    display: inline-block;
+    padding: 1rem 2rem;
+    margin: 0.5rem;
+    background: #2d3748;
+    color: #f7fafc;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.level-button:hover { background: #4a5568; }
+</style>
+{% endblock %}

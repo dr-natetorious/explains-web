@@ -11,7 +11,7 @@ from datetime import datetime
 import os
 from pydantic import BaseModel
 
-from services import NewsArticle, NewsSearchService
+from services.search_service import NewsArticle, NewsSearchService
 from prompts import Prompts
 
 # Configure logging
@@ -282,4 +282,3 @@ URL: {article.url}
             'headlines': headlines_segment,
             'context': context_segment
         }
-

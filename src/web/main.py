@@ -1,3 +1,12 @@
+import sys
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Add src to path
+sys.path.append(str(Path(__file__).parent.parent))
 from pathlib import Path
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
