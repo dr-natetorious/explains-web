@@ -21,12 +21,9 @@ news_agent = NewsAgent()
 async def daily_home(request: Request):
     """Daily articles home page"""
     return templates.TemplateResponse(
+        request,
         "daily/home.html",
-        {
-            "request": request,
-            "current_topic": "Daily Articles",
-            "current_level": 3
-        }
+        {"current_topic": "Daily Articles", "current_level": 3}
     )
 
 @router.get("/generate")
@@ -42,7 +39,6 @@ async def generate_daily_article(request: Request, level: int = 3):
         
         # Prepare template context
         context = {
-            "request": request,
             "date": datetime.now().strftime("%B %d, %Y"),
             "generated_time": datetime.now().strftime("%I:%M %p"),
             "level": level,
@@ -54,7 +50,7 @@ async def generate_daily_article(request: Request, level: int = 3):
             "current_level": level
         }
         
-        return templates.TemplateResponse("daily/article.html", context)
+        return templates.TemplateResponse(request, "daily/article.html", context)
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Article generation failed: {str(e)}")

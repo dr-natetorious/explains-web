@@ -252,7 +252,7 @@ if __name__ == "__main__":
         ai_articles = await service.search_by_keywords('artificial intelligence', 'american', limit=3)
         for article in ai_articles:
             print(f"• {article.title}")
-            print(f"  {article.description[:100]}...")
+            print(f"  {article.description[:100] if article.description else "N/A"}...")
             print()
     
     # Run the main function

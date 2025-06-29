@@ -3,16 +3,16 @@ News Agent using AWS Bedrock Claude 4
 Replicates the manual process of generating structured newscasts with dry humor.
 """
 
-import boto3
 import json
 import logging
 from typing import List, Dict, Optional
 from datetime import datetime
-import os
 from pydantic import BaseModel
+import asyncio
 
 from ..services.news_service import NewsArticle, NewsSearchService
 from ..prompts import Prompts
+from .conversation import AgentConversation, ModelNames
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -32,28 +32,20 @@ class NewsAgent:
                  *,
                  prompts: Optional[Prompts] = None,
                  aws_region: str = 'us-east-1',
-                 model_id: str = 'anthropic.claude-3-5-sonnet-20241022-v2:0'):
+                 model_id: str = ModelNames.SONNET_35):
         """
         Initialize the news agent
         
         Args:
             aws_region: AWS region for Bedrock
-            model_id: Claude model ID (adjust when Claude 4 available)
+            model_id: Claude model ID (default: Sonnet 4)
         """
         self.prompts = prompts or Prompts()
         if not isinstance(self.prompts, Prompts):
             raise ValueError("prompts must be an instance of Prompts class")
-        
         self.aws_region = aws_region
         self.model_id = model_id
-        
-        # Initialize AWS Bedrock client
-        try:
-            self.bedrock = boto3.client(service_name='bedrock-runtime')
-            logger.info(f"Initialized Bedrock client in {aws_region}")
-        except Exception as e:
-            logger.error(f"Failed to initialize Bedrock client: {e}")
-            raise
+        self.conversation = AgentConversation(model_id=self.model_id, region=self.aws_region)
         
         # Initialize search service
         self.search_service = NewsSearchService()
@@ -66,9 +58,9 @@ class NewsAgent:
         """Get the prompt for generating 5-minute context segment"""
         return self.prompts.get_context_prompt()
 
-    def _call_claude(self, prompt: str, max_tokens: int = 1000) -> str:
+    async def _call_claude(self, prompt: str, max_tokens: int = 1000) -> str:
         """
-        Make a call to Claude via AWS Bedrock
+        Async: Make a call to Claude via AgentConversation.
         
         Args:
             prompt: The prompt to send
@@ -78,34 +70,17 @@ class NewsAgent:
             Claude's response text
         """
         try:
-            # Prepare the request body
-            body = json.dumps({
-                "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": max_tokens,
-                "messages": [
-                    {
-                        "role": "user", 
-                        "content": prompt
-                    }
-                ],
-                "temperature": 0.7,
-                "top_p": 0.9
-            })
-            
-            # Make the API call
-            response = self.bedrock.invoke_model(
-                body=body,
-                modelId=self.model_id,
-                accept='application/json',
-                contentType='application/json'
-            )
-            
-            # Parse response
-            response_body = json.loads(response.get('body').read())
-            return response_body['content'][0]['text']
-            
+            async with self.conversation as conv:
+                response_chunks = []
+                async for chunk in conv.send_message(prompt, max_tokens=max_tokens):
+                    response_chunks.append(chunk)
+                full_content = ''.join(response_chunks)
+                if full_content:
+                    return full_content
+                logger.error("No content received from Claude streaming.")
+                return "Error: No content received from Bedrock streaming."
         except Exception as e:
-            logger.error(f"Claude API call failed: {e}")
+            logger.error(f"Claude streaming API call failed: {e}")
             return f"Error generating content: {e}"
 
     def _format_articles_for_prompt(self, articles: List[NewsArticle]) -> str:
@@ -164,7 +139,7 @@ URL: {article.url}
             
             # Generate content with Claude
             logger.info("Generating headlines segment with Claude")
-            content = self._call_claude(prompt, max_tokens=300)
+            content = await self._call_claude(prompt, max_tokens=300)
             
             # Extract story titles covered
             story_titles = [article.title for article in articles[:6] if article.title]
@@ -242,7 +217,7 @@ URL: {article.url}
             
             # Generate content with Claude
             logger.info("Generating context segment with Claude")
-            content = self._call_claude(prompt, max_tokens=1200)
+            content = await self._call_claude(prompt, max_tokens=1200)
             
             return NewscastSegment(
                 segment_type='context',
