@@ -2,130 +2,289 @@
 
 {% block title %}Daily Brief - {{ date | default('Today') }}{% endblock %}
 
-{% block hero_title %}Daily News Analysis{% endblock %}
-{% block hero_subtitle %}AI-generated news analysis at different lean (style) levels{% endblock %}
+{% block hero_title %}{{ date | default('Today\'s') }} Headlines{% endblock %}
+{% block hero_subtitle %}AI-generated news analysis with interactive lean (style) control{% endblock %}
+
+{% block main_class %}story-layout{% endblock %}
 
 {% block content %}
 {% if headlines_content and context_content %}
-<article class="daily-article">
-    <header>
-        <h1>Daily Brief - {{ date }}</h1>
+<article class="story-container">
+    <header class="daily-header">
+        <h2>{{ date }}</h2>
         <div class="article-meta">
-            <span class="lean-indicator lean-{{ lean | default(0) }}">Lean {{ lean | default(0) }}/2</span>
-            <time>{{ generated_time }}</time>
+            <span class="lean-indicator lean-{{ lean | default(0) }}">
+                {% set lean_names = {'-2': 'Liberal', '-1': 'Center-Left', '0': 'Neutral', '1': 'Center-Right', '2': 'Conservative'} %}
+                {{ lean_names[lean|string] | default('Neutral') }}
+            </span>
+            <time datetime="{{ iso_date }}">{{ generated_time }}</time>
         </div>
     </header>
-    <main class="article-content">
-        <div class="headlines-section">
-            <h2>Today's Headlines</h2>
-            <div class="content">{{ headlines_content | safe }}</div>
-        </div>
-        <div class="context-section">
-            <h2>In-Depth Analysis</h2>
-            <div class="content">{{ context_content | safe }}</div>
-        </div>
+    
+    <main class="daily-content">
+        <!-- Headlines Section with Interactive Components -->
+        <section class="headlines-section">
+            <h3>Today's Headlines</h3>
+            <div class="content">
+                {{ headlines_content | safe }}
+            </div>
+        </section>
+        
+        <!-- Context Section with Interactive Components -->
+        <section class="context-section">
+            <h3>In-Depth Analysis</h3>
+            <div class="content">
+                {{ context_content | safe }}
+            </div>
+        </section>
     </main>
+    
     <footer class="article-footer">
         <div class="generation-info">
-            <p>Generated using {{ model_info | default("AI") }}</p>
+            <p><strong>Generated using:</strong> {{ model_info | default("AI Analysis") }}</p>
             {% if generation_time_ms %}
-            <p>Processing time: {{ generation_time_ms }}ms</p>
+            <p><strong>Processing time:</strong> {{ generation_time_ms }}ms</p>
             {% endif %}
             {% if read_time %}
-            <p>Estimated read time: {{ read_time }} minutes</p>
+            <p><strong>Estimated read time:</strong> {{ read_time }} minutes</p>
             {% endif %}
         </div>
+        
+        <!-- Interactive Lean Navigation (Enhanced) -->
         <div class="lean-navigation">
-            <h3>View at Different Lean (Style):</h3>
-            {% for nav_lean in [-2, -1, 0, 1, 2] %}
-                {% if nav_lean != lean %}
-                <a href="/?lean={{ nav_lean }}" class="lean-nav lean-{{ nav_lean }}">
-                    Lean {{ nav_lean }}
-                </a>
-                {% endif %}
-            {% endfor %}
+            <h4>View at Different Perspectives:</h4>
+            <div class="lean-nav-buttons">
+                {% for nav_lean in [-2, -1, 0, 1, 2] %}
+                    {% set lean_names = {'-2': 'Liberal', '-1': 'Center-Left', '0': 'Neutral', '1': 'Center-Right', '2': 'Conservative'} %}
+                    {% if nav_lean != lean %}
+                    <a href="/?lean={{ nav_lean }}" 
+                       class="lean-nav lean-{{ nav_lean }}"
+                       data-lean="{{ nav_lean }}"
+                       aria-label="View {{ lean_names[nav_lean|string] }} perspective">
+                        {{ lean_names[nav_lean|string] }}
+                    </a>
+                    {% else %}
+                    <span class="lean-nav lean-{{ nav_lean }} current" 
+                          data-lean="{{ nav_lean }}"
+                          aria-label="Currently viewing {{ lean_names[nav_lean|string] }} perspective"
+                          aria-current="page">
+                        {{ lean_names[nav_lean|string] }}
+                    </span>
+                    {% endif %}
+                {% endfor %}
+            </div>
         </div>
     </footer>
 </article>
+
 {% else %}
-<div class="article-placeholder">
-    <p>Select a lean (style) above to generate today's news analysis, or view the default (neutral) analysis below.</p>
+<div class="story-container">
+    <div class="article-placeholder">
+        <h2>Welcome to DR★NATE EXPLAINS</h2>
+        <p>Use the lean slider above to generate today's news analysis, or explore our adaptive content system.</p>
+        <p>Your selected perspective will transform how the content is presented while maintaining factual accuracy.</p>
+    </div>
 </div>
 {% endif %}
 {% endblock %}
 
 {% block extra_css %}
 <style>
-.lean-selector { margin: 2rem 0; }
-.lean-button {
-    display: inline-block;
-    padding: 1rem 2rem;
-    margin: 0.5rem;
-    background: #2d3748;
-    color: #f7fafc;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: background 0.2s;
+/* Daily-specific enhancements to complement site.css */
+.daily-header {
+    border-bottom: 1px solid #2d3748;
+    padding-bottom: 16px;
+    margin-bottom: 32px;
 }
-.lean-button:hover { background: #4a5568; }
-.daily-article { 
-    max-width: 800px; 
-    margin: 0 auto; 
-    padding: 2rem; 
+
+.daily-header h2 {
+    font-size: 1.8rem;
+    margin-bottom: 12px;
+    color: #90cdf4;
 }
+
 .article-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 1rem 0 2rem 0;
+    flex-wrap: wrap;
+    gap: 12px;
 }
-.lean-indicator { 
-    padding: 0.5rem 1rem; 
-    border-radius: 20px; 
-    font-weight: 600;
+
+.article-meta time {
+    color: #a0aec0;
     font-size: 0.9rem;
 }
-.lean--2 { background: rgba(72, 187, 120, 0.2); color: #9ae6b4; }
-.lean--1 { background: rgba(144, 205, 244, 0.2); color: #90cdf4; }
-.lean-0 { background: rgba(251, 211, 141, 0.2); color: #fbd38d; }
-.lean-1 { background: rgba(252, 129, 129, 0.2); color: #fc8181; }
-.lean-2 { background: rgba(183, 148, 246, 0.2); color: #b794f6; }
-.headlines-section, .context-section { 
-    margin: 2rem 0; 
-    padding: 1.5rem;
-    background: rgba(26, 31, 46, 0.8);
-    border-radius: 12px;
-    border: 1px solid #2d3748;
+
+.headlines-section, 
+.context-section {
+    margin: 32px 0;
 }
+
+.headlines-section h3,
+.context-section h3 {
+    font-size: 1.3rem;
+    color: #90cdf4;
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgba(144, 205, 244, 0.3);
+    padding-bottom: 8px;
+}
+
 .article-footer {
-    margin-top: 3rem;
-    padding: 1.5rem;
-    background: #2d3748;
-    color: #cbd5e0;
-    border-radius: 8px;
+    margin-top: 48px;
+    padding: 24px;
+    background: rgba(45, 55, 72, 0.6);
+    border-radius: 12px;
+    border: 1px solid #4a5568;
 }
-.generation-info { margin-bottom: 1rem; }
-.generation-info p { margin: 0.25rem 0; font-size: 0.9rem; }
-.lean-navigation h3 { margin-bottom: 0.5rem; }
+
+.generation-info {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #4a5568;
+}
+
+.generation-info p {
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #cbd5e0;
+}
+
+.lean-navigation h4 {
+    color: #f7fafc;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+.lean-nav-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 .lean-nav {
     display: inline-block;
-    padding: 0.5rem 1rem;
-    margin: 0.25rem;
+    padding: 8px 16px;
     text-decoration: none;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    transition: opacity 0.2s;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
 }
-.lean-nav:hover { opacity: 0.8; }
+
+.lean-nav.current {
+    cursor: default;
+    opacity: 0.7;
+    border-style: solid;
+}
+
+.lean-nav:not(.current):hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+/* Enhanced lean color scheme */
+.lean-nav.lean--2,
+.lean-indicator.lean--2 {
+    background: rgba(72, 187, 120, 0.2);
+    color: #9ae6b4;
+    border-color: rgba(72, 187, 120, 0.4);
+}
+
+.lean-nav.lean--1,
+.lean-indicator.lean--1 {
+    background: rgba(99, 179, 237, 0.2);
+    color: #63b3ed;
+    border-color: rgba(99, 179, 237, 0.4);
+}
+
+.lean-nav.lean-0,
+.lean-indicator.lean-0 {
+    background: rgba(237, 137, 54, 0.2);
+    color: #ed8936;
+    border-color: rgba(237, 137, 54, 0.4);
+}
+
+.lean-nav.lean-1,
+.lean-indicator.lean-1 {
+    background: rgba(252, 129, 129, 0.2);
+    color: #fc8181;
+    border-color: rgba(252, 129, 129, 0.4);
+}
+
+.lean-nav.lean-2,
+.lean-indicator.lean-2 {
+    background: rgba(183, 148, 246, 0.2);
+    color: #b794f6;
+    border-color: rgba(183, 148, 246, 0.4);
+}
+
 .article-placeholder {
-    max-width: 700px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: #23263a;
-    color: #b0b6c8;
-    border-radius: 10px;
     text-align: center;
+    padding: 48px 32px;
+    background: rgba(45, 55, 72, 0.3);
+    border-radius: 16px;
+    border: 1px solid #4a5568;
+}
+
+.article-placeholder h2 {
+    color: #90cdf4;
+    margin-bottom: 16px;
+}
+
+.article-placeholder p {
+    color: #cbd5e0;
+    margin-bottom: 12px;
     font-size: 1.1rem;
 }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .article-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .lean-nav-buttons {
+        justify-content: center;
+    }
+    
+    .lean-nav {
+        flex: 1;
+        text-align: center;
+        min-width: 80px;
+    }
+}
 </style>
+{% endblock %}
+
+{% block inline_js %}
+<script>
+// Enhance the page with interactive components after load
+document.addEventListener('DOMContentLoaded', function() {
+    // Sync the top panel with server-side lean value
+    const serverLean = {{ lean | default(0) }};
+    if (window.appState) {
+        window.appState.setState({
+            currentLean: serverLean,
+            currentTopic: '{{ current_topic | default("Daily Brief") }}'
+        });
+    }
+    
+    // Add click handlers to lean navigation links
+    document.querySelectorAll('.lean-nav:not(.current)').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const targetLean = parseInt(this.dataset.lean);
+            if (window.appState) {
+                // Update the component state immediately for visual feedback
+                window.appState.setState({ currentLean: targetLean });
+            }
+            // Let the link navigate naturally to the server route
+        });
+    });
+    
+    console.log('📰 Daily Brief page enhanced with interactive components');
+});
+</script>
 {% endblock %}

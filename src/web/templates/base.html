@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ title | default('DR★NATE EXPLAINS - Professional SPA') }}{% endblock %}</title>
+    <title>{% block title %}{{ title | default('DR★NATE EXPLAINS') }}{% endblock %}</title>
     {% block extra_head %}{% endblock %}
     <link rel="stylesheet" href="/static/site.css">
     {% block extra_css %}{% endblock %}
 </head>
 <body{% if body_class %} class="{{ body_class }}"{% endif %}>
     {% block top_panel %}
-    <!-- Top Panel Component -->
+    <!-- Enhanced Top Panel Component -->
     <top-panel 
         brand-top="{{ brand_top | default('DR★NATE') }}" 
         brand-bottom="{{ brand_bottom | default('EXPLAINS') }}" 
@@ -22,18 +22,17 @@
     {% endblock %}
 
     {% block main %}
-    <!-- Main content with hero section -->
-    <main class="container" role="main">
+    <main class="{% block main_class %}container{% endblock %}" role="main">
         {% block hero %}
-        <!-- Hero section for wide screens -->
+        {% if show_hero | default(true) %}
         <section class="hero-section" aria-labelledby="hero-title">
             <div class="hero-content">
                 <h1 id="hero-title" class="hero-title">{% block hero_title %}Welcome to {{ brand_top | default('DR★NATE') }} {{ brand_bottom | default('EXPLAINS') }}{% endblock %}</h1>
                 <p class="hero-subtitle">
                     {% block hero_subtitle %}
-                    Advanced learning platform with adaptive lean (style) levels. 
-                    Choose your preferred lean and dive deep into comprehensive explanations 
-                    tailored to your style.
+                    AI-generated news analysis with adaptive lean (style) levels. 
+                    Choose your preferred perspective and explore comprehensive explanations 
+                    tailored to your viewpoint.
                     {% endblock %}
                 </p>
                 {% block hero_stats %}
@@ -43,8 +42,8 @@
                         <span class="stat-label">Lean Levels</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number" aria-label="Unlimited topics available">∞</span>
-                        <span class="stat-label">Topics Available</span>
+                        <span class="stat-number" aria-label="Daily stories generated">∞</span>
+                        <span class="stat-label">Daily Stories</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-number" aria-label="100 percent adaptive content">100%</span>
@@ -54,10 +53,11 @@
                 {% endblock %}
             </div>
         </section>
+        {% endif %}
         {% endblock %}
 
         {% block content %}
-        <!-- Content that responds to state changes -->
+        <!-- Default content components -->
         <content-area role="region" aria-label="Main content area"></content-area>
         <sidebar-widget role="complementary" aria-label="Progress tracking and quick actions"></sidebar-widget>
         {% endblock %}

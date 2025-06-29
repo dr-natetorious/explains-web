@@ -31,13 +31,12 @@ class ModelNames(StrEnum):
     SONNET_37 = "us.anthropic.claude-3-7-sonnet-20250601-v1:0"
     SONNET_40 = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
-
 class AgentConversation:
     """Simple async streaming conversation with Claude using boto3."""
     
     def __init__(self, 
                  client=None, 
-                 model_id: str = ModelNames.SONNET_35, 
+                 model_id: str = ModelNames.SONNET_40, 
                  region: str = "us-east-1"):
         self.model_id = model_id
         self.region = region

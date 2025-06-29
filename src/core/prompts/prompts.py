@@ -33,4 +33,8 @@ class Prompts:
         """
         return self.get_prompt("headlines")
     
-        
+    def get_news_selection_prompt(self) -> str:
+        """
+        Returns the news selection prompt for the application.
+        """
+        return self.get_prompt("selection")

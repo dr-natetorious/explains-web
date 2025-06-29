@@ -57,7 +57,7 @@ class TopPanel extends HTMLElement {
 
         // Listen for global state changes
         appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLean || e.detail.updates.currentTopic) {
+            if (e.detail.updates.currentLean !== undefined || e.detail.updates.currentTopic) {
                 this.render();
             }
         });
@@ -184,7 +184,7 @@ class ContentArea extends HTMLElement {
     connectedCallback() {
         this.render();
         appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLean || e.detail.updates.currentTopic) {
+            if (e.detail.updates.currentLean !== undefined || e.detail.updates.currentTopic) {
                 this.render();
             }
         });
@@ -193,7 +193,7 @@ class ContentArea extends HTMLElement {
     render() {
         const state = appState.state;
         const leanNames = ['Liberal', 'Center-Left', 'Neutral', 'Center-Right', 'Conservative'];
-        const leanIdx = [ -2, -1, 0, 1, 2 ].indexOf(state.currentLean);
+        const leanIdx = [-2, -1, 0, 1, 2].indexOf(state.currentLean);
         this.innerHTML = `
             <div class="content-card">
                 <div class="content-header">
@@ -228,7 +228,7 @@ class SidebarWidget extends HTMLElement {
     connectedCallback() {
         this.render();
         appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLean) {
+            if (e.detail.updates.currentLean !== undefined) {
                 this.render();
             }
         });
@@ -266,17 +266,239 @@ class SidebarWidget extends HTMLElement {
     }
 }
 
+// News Story Component
+class NewsStory extends HTMLElement {
+    constructor() {
+        super();
+        this.leanLabels = ['Liberal', 'Center-Left', 'Neutral', 'Center-Right', 'Conservative'];
+        this.leanAdjectives = {
+            '-2': ['progressive', 'inclusive', 'forward-thinking', 'justice-oriented', 'empathetic'],
+            '-1': ['balanced', 'thoughtful', 'pragmatic', 'reform-minded', 'collaborative'],
+            '0': ['objective', 'factual', 'impartial', 'analytical', 'straightforward'],
+            '1': ['prudent', 'measured', 'practical', 'traditional', 'responsible'],
+            '2': ['principled', 'steadfast', 'time-tested', 'value-driven', 'disciplined']
+        };
+    }
+
+    connectedCallback() {
+        this.updateLeanAttribute();
+        appState.addEventListener('statechange', (e) => {
+            if (e.detail.updates.currentLean !== undefined) {
+                this.updateLeanAttribute();
+                this.updateLeanTexts();
+            }
+        });
+        this.updateLeanTexts();
+        this.setupSegmentInteractions();
+    }
+
+    updateLeanAttribute() {
+        this.setAttribute('lean', appState.lean.toString());
+    }
+
+    updateLeanTexts() {
+        const leanTexts = this.querySelectorAll('.lean-text[data-lean-variants]');
+        const currentLean = appState.lean;
+
+        leanTexts.forEach(element => {
+            // Remove all lean classes
+            element.className = element.className.replace(/active-lean-[-\d]+/g, '').trim();
+            
+            // Add current lean class
+            element.classList.add(`active-lean-${currentLean}`);
+
+            const variants = element.getAttribute('data-lean-variants');
+            if (variants) {
+                const variantMap = {};
+                variants.split('|').forEach(variant => {
+                    const [lean, text] = variant.split(':');
+                    variantMap[lean] = text;
+                });
+
+                if (variantMap[currentLean]) {
+                    element.textContent = variantMap[currentLean];
+                }
+            }
+        });
+    }
+
+    setupSegmentInteractions() {
+        const segments = this.querySelectorAll('segment');
+        segments.forEach(segment => {
+            segment.setAttribute('tabindex', '0');
+            segment.setAttribute('role', 'button');
+            segment.setAttribute('aria-label', 'Interactive news segment');
+            
+            segment.addEventListener('click', (e) => {
+                this.handleSegmentClick(e, segment);
+            });
+            
+            segment.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.handleSegmentClick(e, segment);
+                }
+            });
+        });
+    }
+
+    handleSegmentClick(e, segment) {
+        // Add click animation
+        segment.style.transform = 'translateX(8px) scale(1.02)';
+        setTimeout(() => {
+            segment.style.transform = '';
+        }, 200);
+
+        // Log analytics or show sources
+        const axis = this.getAttribute('axis') || 'general';
+        const currentLean = appState.lean;
+        
+        console.log('📊 Segment clicked:', {
+            axis,
+            lean: currentLean,
+            content: segment.textContent.trim().substring(0, 50) + '...'
+        });
+
+        // Show sources if available
+        this.showSources(segment);
+    }
+
+    showSources(segment) {
+        const sourcesElement = this.querySelector('sources');
+        if (sourcesElement) {
+            const sources = Array.from(sourcesElement.querySelectorAll('source')).map(source => ({
+                name: source.getAttribute('name') || 'Unknown Source',
+                url: source.getAttribute('url') || '#'
+            }));
+
+            if (sources.length > 0) {
+                const sourceNames = sources.map(s => s.name).join(', ');
+                console.log('📰 Sources for this segment:', sourceNames);
+                
+                // Could trigger a modal or tooltip here
+                // For now, just log to console
+            }
+        }
+    }
+
+    // Method to get content adapted for current lean
+    getAdaptedContent(originalContent, targetLean) {
+        // This method could be used to dynamically adapt content
+        // based on lean when the component is created programmatically
+        
+        const adjustments = {
+            '-2': content => content
+                .replace(/apparently/g, 'evidently')
+                .replace(/simply/g, 'systematically')
+                .replace(/vanishing/g, 'being eliminated'),
+            '-1': content => content
+                .replace(/apparently/g, 'clearly')
+                .replace(/simply/g, 'systematically'),
+            '0': content => content, // Keep neutral
+            '1': content => content
+                .replace(/apparently/g, 'predictably')
+                .replace(/systematically/g, 'methodically'),
+            '2': content => content
+                .replace(/apparently/g, 'unsurprisingly')
+                .replace(/systematically/g, 'methodically')
+                .replace(/being eliminated/g, 'vanishing')
+        };
+
+        return adjustments[targetLean.toString()] ? 
+               adjustments[targetLean.toString()](originalContent) : 
+               originalContent;
+    }
+
+    // Utility method to create news story programmatically
+    static create(config) {
+        const newsStory = document.createElement('news-story');
+        newsStory.setAttribute('lean', config.lean || '0');
+        newsStory.setAttribute('axis', config.axis || 'general');
+
+        const segment = document.createElement('segment');
+        segment.textContent = config.content || '';
+
+        const sources = document.createElement('sources');
+        if (config.sources && config.sources.length > 0) {
+            config.sources.forEach(sourceData => {
+                const source = document.createElement('source');
+                source.setAttribute('name', sourceData.name || '');
+                source.setAttribute('url', sourceData.url || '');
+                if (sourceData.urlToImage) {
+                    source.setAttribute('urlToImage', sourceData.urlToImage);
+                }
+                sources.appendChild(source);
+            });
+        }
+
+        newsStory.appendChild(segment);
+        newsStory.appendChild(sources);
+
+        return newsStory;
+    }
+}
+
+// Utility Functions
+const NewsUtils = {
+    // Create lean-text spans programmatically
+    createLeanText(variants, defaultText) {
+        const span = document.createElement('span');
+        span.className = 'lean-text';
+        span.setAttribute('data-lean-variants', variants);
+        span.textContent = defaultText;
+        return span;
+    },
+
+    // Parse lean variants string into object
+    parseLeanVariants(variantsString) {
+        const variants = {};
+        variantsString.split('|').forEach(variant => {
+            const [lean, text] = variant.split(':');
+            variants[lean] = text;
+        });
+        return variants;
+    },
+
+    // Get text for specific lean
+    getTextForLean(variantsString, lean) {
+        const variants = this.parseLeanVariants(variantsString);
+        return variants[lean.toString()] || variants['0'] || '';
+    },
+
+    // Analytics helper
+    trackSegmentInteraction(axis, lean, content) {
+        // This could send data to analytics service
+        console.log('📈 Analytics:', {
+            event: 'segment_interaction',
+            axis,
+            lean,
+            content_preview: content.substring(0, 100),
+            timestamp: new Date().toISOString()
+        });
+    }
+};
+
 // Register all components
 customElements.define('top-panel', TopPanel);
 customElements.define('content-area', ContentArea);
 customElements.define('sidebar-widget', SidebarWidget);
+customElements.define('news-story', NewsStory);
 
-// Make appState globally available for demo buttons
+// Make globals available
 window.appState = appState;
+window.NewsStory = NewsStory;
+window.NewsUtils = NewsUtils;
 
 // Demo: Log all state changes
 appState.addEventListener('statechange', (e) => {
     console.log('🔄 State Change:', e.detail.updates);
+});
+
+// Initialize analytics tracking
+appState.addEventListener('statechange', (e) => {
+    if (e.detail.updates.currentLean !== undefined) {
+        NewsUtils.trackSegmentInteraction('lean_change', e.detail.newState.currentLean, 'Global lean slider');
+    }
 });
 
 console.log('✅ All components loaded and registered!');
