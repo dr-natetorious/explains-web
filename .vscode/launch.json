@@ -3,10 +3,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "API",
+            "name": "WebApp",
             "type": "debugpy",
             "request": "launch",
-            "module": "api",
+            "module": "web",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "args": ["full"],

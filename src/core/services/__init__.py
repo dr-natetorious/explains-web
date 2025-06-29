@@ -1,4 +1,4 @@
-from .search_service import NewsSearchService, NewsArticle
+from .news_service import NewsSearchService, NewsArticle
 from .content_service import (
     AIContentService,
     BaseAIProvider

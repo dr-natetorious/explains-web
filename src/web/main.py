@@ -52,7 +52,7 @@ include_routes(app)
 
 async def main():
     import uvicorn
-    uvicorn.run("api.main:app", 
+    uvicorn.run("web.main:app", 
                 host="127.0.0.1", 
                 port=8000,
                 reload_includes=["*.py", "*.html", "*.css", "*.js"],

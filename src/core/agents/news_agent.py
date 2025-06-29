@@ -11,8 +11,8 @@ from datetime import datetime
 import os
 from pydantic import BaseModel
 
-from services.search_service import NewsArticle, NewsSearchService
-from prompts import Prompts
+from ..services.news_service import NewsArticle, NewsSearchService
+from ..prompts import Prompts
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -138,12 +138,13 @@ URL: {article.url}
         try:
             # Get latest news articles
             logger.info(f"Fetching {region} {category} news for headlines")
-            articles = await self.search_service.search_headlines(
+            response = await self.search_service.search_headlines(
                 region=region,
                 category=category,
                 limit=10,
                 hours_back=24
             )
+            articles = response.articles
             
             if not articles:
                 return NewscastSegment(
@@ -166,7 +167,7 @@ URL: {article.url}
             content = self._call_claude(prompt, max_tokens=300)
             
             # Extract story titles covered
-            story_titles = [article.title for article in articles[:6]]
+            story_titles = [article.title for article in articles[:6] if article.title]
             
             return NewscastSegment(
                 segment_type='headlines',
@@ -202,15 +203,18 @@ URL: {article.url}
             logger.info(f"Fetching {region} news for context analysis")
             
             # Get both general and political news for richer context
-            general_articles = await self.search_service.search_headlines(
+            general_response = await self.search_service.search_headlines(
                 region=region, category='general', limit=8, hours_back=48
             )
-            political_articles = await self.search_service.search_headlines(
+            political_response = await self.search_service.search_headlines(
                 region=region, category='politics', limit=5, hours_back=48
             )
-            business_articles = await self.search_service.search_headlines(
+            business_response = await self.search_service.search_headlines(
                 region=region, category='business', limit=5, hours_back=48
             )
+            general_articles = general_response.articles
+            political_articles = political_response.articles
+            business_articles = business_response.articles
             
             # Combine and deduplicate
             all_articles = general_articles + political_articles + business_articles
