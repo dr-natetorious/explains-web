@@ -15,7 +15,7 @@
         brand-top="{{ brand_top | default('DR★NATE') }}" 
         brand-bottom="{{ brand_bottom | default('EXPLAINS') }}" 
         topic="{{ current_topic | default('Dashboard') }}" 
-        current-level="{{ current_level | default('3') }}"
+        current-lean="{{ current_lean | default('0') }}"
         role="navigation"
         aria-label="Main navigation panel">
     </top-panel>
@@ -31,16 +31,16 @@
                 <h1 id="hero-title" class="hero-title">{% block hero_title %}Welcome to {{ brand_top | default('DR★NATE') }} {{ brand_bottom | default('EXPLAINS') }}{% endblock %}</h1>
                 <p class="hero-subtitle">
                     {% block hero_subtitle %}
-                    Advanced learning platform with adaptive difficulty levels. 
-                    Choose your expertise level and dive deep into comprehensive explanations 
-                    tailored to your knowledge level.
+                    Advanced learning platform with adaptive lean (style) levels. 
+                    Choose your preferred lean and dive deep into comprehensive explanations 
+                    tailored to your style.
                     {% endblock %}
                 </p>
                 {% block hero_stats %}
                 <div class="hero-stats" role="region" aria-label="Platform statistics">
                     <div class="stat-item">
-                        <span class="stat-number" aria-label="5 difficulty levels available">5</span>
-                        <span class="stat-label">Difficulty Levels</span>
+                        <span class="stat-number" aria-label="5 lean levels available">5</span>
+                        <span class="stat-label">Lean Levels</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-number" aria-label="Unlimited topics available">∞</span>

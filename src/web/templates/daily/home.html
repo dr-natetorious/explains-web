@@ -1,25 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}Daily Articles - DR★NATE EXPLAINS{% endblock %}
+{% block title %}Daily Brief - {{ date | default('Today') }}{% endblock %}
 
 {% block hero_title %}Daily News Analysis{% endblock %}
-{% block hero_subtitle %}AI-generated news analysis at different complexity levels{% endblock %}
+{% block hero_subtitle %}AI-generated news analysis at different lean (style) levels{% endblock %}
 
 {% block content %}
-<div class="level-selector">
-    <h2>Choose Your Level:</h2>
-    <a href="/daily/generate?level=1" class="level-button level-1">📚 Basic</a>
-    <a href="/daily/generate?level=2" class="level-button level-2">📖 Intermediate</a>
-    <a href="/daily/generate?level=3" class="level-button level-3">🔬 Advanced</a>
-    <a href="/daily/generate?level=4" class="level-button level-4">🎓 Expert</a>
-    <a href="/daily/generate?level=5" class="level-button level-5">🏆 Master</a>
+{% if headlines_content and context_content %}
+<article class="daily-article">
+    <header>
+        <h1>Daily Brief - {{ date }}</h1>
+        <div class="article-meta">
+            <span class="lean-indicator lean-{{ lean | default(0) }}">Lean {{ lean | default(0) }}/2</span>
+            <time>{{ generated_time }}</time>
+        </div>
+    </header>
+    <main class="article-content">
+        <div class="headlines-section">
+            <h2>Today's Headlines</h2>
+            <div class="content">{{ headlines_content | safe }}</div>
+        </div>
+        <div class="context-section">
+            <h2>In-Depth Analysis</h2>
+            <div class="content">{{ context_content | safe }}</div>
+        </div>
+    </main>
+    <footer class="article-footer">
+        <div class="generation-info">
+            <p>Generated using {{ model_info | default("AI") }}</p>
+            {% if generation_time_ms %}
+            <p>Processing time: {{ generation_time_ms }}ms</p>
+            {% endif %}
+            {% if read_time %}
+            <p>Estimated read time: {{ read_time }} minutes</p>
+            {% endif %}
+        </div>
+        <div class="lean-navigation">
+            <h3>View at Different Lean (Style):</h3>
+            {% for nav_lean in [-2, -1, 0, 1, 2] %}
+                {% if nav_lean != lean %}
+                <a href="/?lean={{ nav_lean }}" class="lean-nav lean-{{ nav_lean }}">
+                    Lean {{ nav_lean }}
+                </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </footer>
+</article>
+{% else %}
+<div class="article-placeholder">
+    <p>Select a lean (style) above to generate today's news analysis, or view the default (neutral) analysis below.</p>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
 <style>
-.level-selector { margin: 2rem 0; }
-.level-button {
+.lean-selector { margin: 2rem 0; }
+.lean-button {
     display: inline-block;
     padding: 1rem 2rem;
     margin: 0.5rem;
@@ -29,6 +67,65 @@
     border-radius: 8px;
     transition: background 0.2s;
 }
-.level-button:hover { background: #4a5568; }
+.lean-button:hover { background: #4a5568; }
+.daily-article { 
+    max-width: 800px; 
+    margin: 0 auto; 
+    padding: 2rem; 
+}
+.article-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0 2rem 0;
+}
+.lean-indicator { 
+    padding: 0.5rem 1rem; 
+    border-radius: 20px; 
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.lean--2 { background: rgba(72, 187, 120, 0.2); color: #9ae6b4; }
+.lean--1 { background: rgba(144, 205, 244, 0.2); color: #90cdf4; }
+.lean-0 { background: rgba(251, 211, 141, 0.2); color: #fbd38d; }
+.lean-1 { background: rgba(252, 129, 129, 0.2); color: #fc8181; }
+.lean-2 { background: rgba(183, 148, 246, 0.2); color: #b794f6; }
+.headlines-section, .context-section { 
+    margin: 2rem 0; 
+    padding: 1.5rem;
+    background: rgba(26, 31, 46, 0.8);
+    border-radius: 12px;
+    border: 1px solid #2d3748;
+}
+.article-footer {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    background: #2d3748;
+    color: #cbd5e0;
+    border-radius: 8px;
+}
+.generation-info { margin-bottom: 1rem; }
+.generation-info p { margin: 0.25rem 0; font-size: 0.9rem; }
+.lean-navigation h3 { margin-bottom: 0.5rem; }
+.lean-nav {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    transition: opacity 0.2s;
+}
+.lean-nav:hover { opacity: 0.8; }
+.article-placeholder {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #23263a;
+    color: #b0b6c8;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 1.1rem;
+}
 </style>
 {% endblock %}

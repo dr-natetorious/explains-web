@@ -3,7 +3,7 @@ class AppState extends EventTarget {
     constructor() {
         super();
         this.state = {
-            currentLevel: 3,
+            currentLean: 0,
             currentTopic: 'Dashboard',
             brandTop: 'DR★NATE',
             brandBottom: 'EXPLAINS'
@@ -21,7 +21,7 @@ class AppState extends EventTarget {
         }));
     }
 
-    get level() { return this.state.currentLevel; }
+    get lean() { return this.state.currentLean; }
     get topic() { return this.state.currentTopic; }
     get brandTop() { return this.state.brandTop; }
     get brandBottom() { return this.state.brandBottom; }
@@ -34,19 +34,20 @@ const appState = new AppState();
 class TopPanel extends HTMLElement {
     constructor() {
         super();
-        this.levelLabels = ['Basic', 'Intermediate', 'Advanced', 'Expert', 'Master'];
+        this.leanLabels = ['Liberal', 'Center-Left', 'Neutral', 'Center-Right', 'Conservative'];
+        this.leanValues = [-2, -1, 0, 1, 2];
     }
 
     connectedCallback() {
         // Initialize from attributes
-        const level = parseInt(this.getAttribute('current-level')) || 3;
+        const lean = parseInt(this.getAttribute('current-lean')) ?? 0;
         const topic = this.getAttribute('topic') || 'Dashboard';
         const brandTop = this.getAttribute('brand-top') || 'DR★NATE';
         const brandBottom = this.getAttribute('brand-bottom') || 'EXPLAINS';
 
         // Update global state
         appState.setState({
-            currentLevel: level,
+            currentLean: lean,
             currentTopic: topic,
             brandTop,
             brandBottom
@@ -56,7 +57,7 @@ class TopPanel extends HTMLElement {
 
         // Listen for global state changes
         appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLevel || e.detail.updates.currentTopic) {
+            if (e.detail.updates.currentLean || e.detail.updates.currentTopic) {
                 this.render();
             }
         });
@@ -67,12 +68,12 @@ class TopPanel extends HTMLElement {
     }
 
     handleClick(e) {
-        if (e.target.matches('.level-line')) {
-            const newLevel = parseInt(e.target.dataset.level);
-            appState.setState({ currentLevel: newLevel });
+        if (e.target.matches('.lean-line')) {
+            const newLean = parseInt(e.target.dataset.lean);
+            appState.setState({ currentLean: newLean });
 
             // Update focus and ARIA attributes
-            this.querySelectorAll('.level-line').forEach(line => {
+            this.querySelectorAll('.lean-line').forEach(line => {
                 line.setAttribute('aria-checked', 'false');
                 line.setAttribute('tabindex', '-1');
             });
@@ -83,7 +84,7 @@ class TopPanel extends HTMLElement {
 
             // Update aria-activedescendant
             const radioGroup = this.querySelector('[role="radiogroup"]');
-            radioGroup.setAttribute('aria-activedescendant', `level-${newLevel}`);
+            radioGroup.setAttribute('aria-activedescendant', `lean-${newLean}`);
 
             // Animation feedback
             e.target.style.transform = 'scaleY(1.2)';
@@ -94,43 +95,45 @@ class TopPanel extends HTMLElement {
     }
 
     handleKeydown(e) {
-        if (e.target.matches('.level-line')) {
-            const currentLevel = parseInt(e.target.dataset.level);
-            let newLevel = currentLevel;
+        if (e.target.matches('.lean-line')) {
+            const currentLean = parseInt(e.target.dataset.lean);
+            let newLean = currentLean;
+            const leans = this.leanValues;
+            const idx = leans.indexOf(currentLean);
 
             switch (e.key) {
                 case 'ArrowLeft':
                 case 'ArrowUp':
                     e.preventDefault();
-                    newLevel = Math.max(1, currentLevel - 1);
+                    newLean = leans[Math.max(0, idx - 1)];
                     break;
                 case 'ArrowRight':
                 case 'ArrowDown':
                     e.preventDefault();
-                    newLevel = Math.min(5, currentLevel + 1);
+                    newLean = leans[Math.min(leans.length - 1, idx + 1)];
                     break;
                 case 'Home':
                     e.preventDefault();
-                    newLevel = 1;
+                    newLean = leans[0];
                     break;
                 case 'End':
                     e.preventDefault();
-                    newLevel = 5;
+                    newLean = leans[leans.length - 1];
                     break;
                 case ' ':
                 case 'Enter':
                     e.preventDefault();
-                    // Level is already selected, just announce it
+                    // Lean is already selected, just announce it
                     break;
                 default:
                     return;
             }
 
-            if (newLevel !== currentLevel) {
-                appState.setState({ currentLevel: newLevel });
+            if (newLean !== currentLean) {
+                appState.setState({ currentLean: newLean });
                 // Focus will be set in the next render cycle
                 setTimeout(() => {
-                    const newElement = this.querySelector(`[data-level="${newLevel}"]`);
+                    const newElement = this.querySelector(`[data-lean="${newLean}"]`);
                     if (newElement) newElement.focus();
                 }, 0);
             }
@@ -139,44 +142,39 @@ class TopPanel extends HTMLElement {
 
     render() {
         const state = appState.state;
-
         this.innerHTML = `
-                    <div class="panel-container">
-                        <div class="brand-icon" role="img" aria-label="${state.brandTop} ${state.brandBottom} logo">
-                            <div class="brand-top">${state.brandTop}</div>
-                            <div class="brand-bottom">${state.brandBottom}</div>
-                        </div>
-                        
-                        <div class="divider" role="separator" aria-hidden="true"></div>
-                        
-                        <h1 class="topic-title" id="current-topic">${state.currentTopic}</h1>
-                        
-                        <div class="level-slider" role="group" aria-labelledby="level-slider-label">
-                            <div id="level-slider-label" class="sr-only">Difficulty level selector</div>
-                            <div class="slider-track" role="radiogroup" aria-label="Select difficulty level" aria-activedescendant="level-${state.currentLevel}">
-                                ${this.renderLevelLines()}
-                            </div>
-                            <div class="slider-info" aria-live="polite" aria-atomic="true">Level ${state.currentLevel}/5</div>
-                        </div>
+            <div class="panel-container">
+                <div class="brand-icon" role="img" aria-label="${state.brandTop} ${state.brandBottom} logo">
+                    <div class="brand-top">${state.brandTop}</div>
+                    <div class="brand-bottom">${state.brandBottom}</div>
+                </div>
+                <div class="divider" role="separator" aria-hidden="true"></div>
+                <h1 class="topic-title" id="current-topic">${state.currentTopic}</h1>
+                <div class="lean-slider" role="group" aria-labelledby="lean-slider-label">
+                    <div id="lean-slider-label" class="sr-only">Lean (style) selector</div>
+                    <div class="slider-track" role="radiogroup" aria-label="Select lean (style)" aria-activedescendant="lean-${state.currentLean}">
+                        ${this.renderLeanLines()}
                     </div>
-                `;
+                    <div class="slider-info" aria-live="polite" aria-atomic="true">Lean ${state.currentLean}/2</div>
+                </div>
+            </div>
+        `;
     }
 
-    renderLevelLines() {
-        return Array.from({ length: 5 }, (_, index) => {
-            const level = index + 1;
-            const isActive = level === appState.level;
+    renderLeanLines() {
+        return this.leanValues.map((lean, idx) => {
+            const isActive = lean === appState.lean;
             return `
-                        <div class="level-line ${isActive ? 'active' : ''}" 
-                             data-level="${level}"
-                             role="radio"
-                             aria-checked="${isActive}"
-                             aria-label="Level ${level}: ${this.levelLabels[index]}"
-                             id="level-${level}"
-                             tabindex="${isActive ? '0' : '-1'}">
-                            <div class="level-label" aria-hidden="true">${this.levelLabels[index]}</div>
-                        </div>
-                    `;
+                <div class="lean-line ${isActive ? 'active' : ''}"
+                     data-lean="${lean}"
+                     role="radio"
+                     aria-checked="${isActive}"
+                     aria-label="Lean ${lean}: ${this.leanLabels[idx]}"
+                     id="lean-${lean}"
+                     tabindex="${isActive ? '0' : '-1'}">
+                    <div class="lean-label" aria-hidden="true">${this.leanLabels[idx]}</div>
+                </div>
+            `;
         }).join('');
     }
 }
@@ -185,10 +183,8 @@ class TopPanel extends HTMLElement {
 class ContentArea extends HTMLElement {
     connectedCallback() {
         this.render();
-
-        // Listen for state changes
         appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLevel || e.detail.updates.currentTopic) {
+            if (e.detail.updates.currentLean || e.detail.updates.currentTopic) {
                 this.render();
             }
         });
@@ -196,37 +192,34 @@ class ContentArea extends HTMLElement {
 
     render() {
         const state = appState.state;
-        const difficultyNames = ['Basic', 'Intermediate', 'Advanced', 'Expert', 'Master'];
-
+        const leanNames = ['Liberal', 'Center-Left', 'Neutral', 'Center-Right', 'Conservative'];
+        const leanIdx = [ -2, -1, 0, 1, 2 ].indexOf(state.currentLean);
         this.innerHTML = `
-                    <div class="content-card">
-                        <div class="content-header">
-                            <h2 id="content-title">${state.currentTopic}</h2>
-                            <span class="difficulty-badge difficulty-${state.currentLevel}" 
-                                  aria-label="Difficulty level: ${difficultyNames[state.currentLevel - 1]}">
-                                ${difficultyNames[state.currentLevel - 1]}
-                            </span>
-                        </div>
-                        
-                        <div class="content-body" aria-labelledby="content-title">
-                            <p>This content adapts to <strong>Level ${state.currentLevel}</strong> complexity.</p>
-                            
-                            ${this.getContentForLevel(state.currentLevel)}
-                        </div>
-                    </div>
-                `;
+            <div class="content-card">
+                <div class="content-header">
+                    <h2 id="content-title">${state.currentTopic}</h2>
+                    <span class="lean-badge lean-${state.currentLean}" 
+                          aria-label="Lean: ${leanNames[leanIdx >= 0 ? leanIdx : 2]}">
+                        ${leanNames[leanIdx >= 0 ? leanIdx : 2]}
+                    </span>
+                </div>
+                <div class="content-body" aria-labelledby="content-title">
+                    <p>This content adapts to <strong>Lean ${state.currentLean}</strong> style.</p>
+                    ${this.getContentForLean(state.currentLean)}
+                </div>
+            </div>
+        `;
     }
 
-    getContentForLevel(level) {
+    getContentForLean(lean) {
         const content = {
-            1: '<p>🟢 <strong>Basic:</strong> Simple explanations and step-by-step guides.</p>',
-            2: '<p>🔵 <strong>Intermediate:</strong> More detailed information with examples.</p>',
-            3: '<p>🟠 <strong>Advanced:</strong> In-depth analysis and technical details.</p>',
-            4: '<p>🔴 <strong>Expert:</strong> Complex concepts and advanced techniques.</p>',
-            5: '<p>🟣 <strong>Master:</strong> Cutting-edge research and theoretical frameworks.</p>'
+            '-2': '<p>🟢 <strong>Liberal:</strong> Progressive, inclusive, and open-minded tone.</p>',
+            '-1': '<p>🔵 <strong>Center-Left:</strong> Moderately progressive, balanced with tradition.</p>',
+            '0': '<p>🟠 <strong>Neutral:</strong> Objective, fact-based, and impartial style.</p>',
+            '1': '<p>🔴 <strong>Center-Right:</strong> Moderately conservative, pragmatic approach.</p>',
+            '2': '<p>🟣 <strong>Conservative:</strong> Traditional, cautious, and value-driven style.</p>'
         };
-
-        return content[level] || content[3];
+        return content[lean] || content['0'];
     }
 }
 
@@ -234,10 +227,8 @@ class ContentArea extends HTMLElement {
 class SidebarWidget extends HTMLElement {
     connectedCallback() {
         this.render();
-
-        // Listen for state changes
         appState.addEventListener('statechange', (e) => {
-            if (e.detail.updates.currentLevel) {
+            if (e.detail.updates.currentLean) {
                 this.render();
             }
         });
@@ -245,37 +236,33 @@ class SidebarWidget extends HTMLElement {
 
     render() {
         const state = appState.state;
-        const progress = (state.currentLevel / 5) * 100;
-
+        const progress = ((state.currentLean + 2) / 4) * 100;
         this.innerHTML = `
-                    <div class="widget-card">
-                        <h3 id="progress-title">Progress Tracker</h3>
-                        <p>Current Level: <strong>${state.currentLevel}/5</strong></p>
-                        
-                        <div class="progress-bar" role="progressbar" 
-                             aria-valuenow="${progress}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100"
-                             aria-labelledby="progress-title"
-                             aria-describedby="progress-description">
-                            <div class="progress-fill" style="width: ${progress}%"></div>
-                        </div>
-                        
-                        <p id="progress-description"><small>${Math.round(progress)}% Complete</small></p>
-                        
-                        <div style="margin-top: 20px;">
-                            <h4>Quick Actions</h4>
-                            <button onclick="appState.setState({currentTopic: 'Settings'})" 
-                                    aria-label="Navigate to Settings page">
-                                Go to Settings
-                            </button>
-                            <button onclick="appState.setState({currentTopic: 'Profile'})" 
-                                    aria-label="Navigate to Profile page">
-                                View Profile
-                            </button>
-                        </div>
-                    </div>
-                `;
+            <div class="widget-card">
+                <h3 id="progress-title">Progress Tracker</h3>
+                <p>Current Lean: <strong>${state.currentLean}/2</strong></p>
+                <div class="progress-bar" role="progressbar" 
+                     aria-valuenow="${progress}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100"
+                     aria-labelledby="progress-title"
+                     aria-describedby="progress-description">
+                    <div class="progress-fill" style="width: ${progress}%"></div>
+                </div>
+                <p id="progress-description"><small>${Math.round(progress)}% Complete</small></p>
+                <div style="margin-top: 20px;">
+                    <h4>Quick Actions</h4>
+                    <button onclick="appState.setState({currentTopic: 'Settings'})" 
+                            aria-label="Navigate to Settings page">
+                        Go to Settings
+                    </button>
+                    <button onclick="appState.setState({currentTopic: 'Profile'})" 
+                            aria-label="Navigate to Profile page">
+                        View Profile
+                    </button>
+                </div>
+            </div>
+        `;
     }
 }
 
